@@ -6,6 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,17 +30,25 @@ public class Trips {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     
-    @ElementCollection
-    @CollectionTable(name = "trip_photos", joinColumns = @JoinColumn(name = "trip_id"))
-    @Column(name = "photo")
-    @Builder.Default
-    private List<String> photos = new ArrayList<>();
+    // @ElementCollection
+    // @CollectionTable(name = "trip_photos", joinColumns = @JoinColumn(name = "trip_id"))
+    // @Column(name = "photo")
+    // @Builder.Default
+    // private List<String> photos = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.ARRAY)                                     
+    @Column(name = "photos", columnDefinition = "text[]")             
+    @Builder.Default                                                  
+    private String[] photos = new String[0];  
     
-    @ElementCollection
-    @CollectionTable(name = "trip_tags", joinColumns = @JoinColumn(name = "trip_id"))
-    @Column(name = "tag")
-    @Builder.Default
-    private List<String> tags = new ArrayList<>();
+    // @ElementCollection
+    // @CollectionTable(name = "trip_tags", joinColumns = @JoinColumn(name = "trip_id"))
+    // @Column(name = "tag")
+    // @Builder.Default
+    // private List<String> tags = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.ARRAY)                                     
+    @Column(name = "tags", columnDefinition = "text[]")               
+    @Builder.Default                                                  
+    private String[] tags = new String[0];
     
     @Column(name = "latitude")
     private Double latitude;

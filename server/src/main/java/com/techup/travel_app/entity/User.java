@@ -15,18 +15,23 @@ import java.time.OffsetDateTime;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+
     @Column(name = "id")
-    private Long id;
-    
+    private Long id; // Primary key
+
+    @Column(name = "clerk_id", unique = true, nullable = true) // nullable = true เพราะอาจยังไม่มีตอนสร้าง)
+    private String clerkId; // เก็บ Clerk User ID
+
     @Column(name = "email", unique = true, nullable = false, length = 255)
     private String email;
-    
-    @Column(name = "password_hash", nullable = false, columnDefinition = "TEXT")
-    private String passwordHash;
-    
+
+    // @Column(name = "password_hash", nullable = false, columnDefinition = "TEXT")
+    // private String passwordHash;
+
     @Column(name = "display_name", length = 100)
     private String displayName;
-    
+
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     private OffsetDateTime createdAt;
