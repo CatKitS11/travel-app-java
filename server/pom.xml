@@ -44,13 +44,6 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- เพิ่ม Clerk Java SDK -->
-		<dependency>
-			<groupId>com.clerk</groupId>
-			<artifactId>backend-api</artifactId>
-			<version>4.0.0</version>
-		</dependency>
-
 		<!-- Spring Security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

@@ -1,6 +1,6 @@
 package com.techup.travel_app.security;
 
-import com.clerk.backendapi.models.User;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,19 +33,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
             
             try {
-                // Verify token กับ Clerk SDK
-                User clerkUser = clerkJwtVerifier.verifyToken(token);
+                // Verify token กับ Clerk
+                Claims claims = clerkJwtVerifier.verifyToken(token);
+                String userId = clerkJwtVerifier.getUserIdFromToken(token);
+                String email = clerkJwtVerifier.getEmailFromToken(token);
                 
                 // สร้าง Authentication object
                 UsernamePasswordAuthenticationToken authentication = 
                     new UsernamePasswordAuthenticationToken(
-                        clerkUser.getId(), // principal = Clerk User ID
-                        null,             // credentials
+                        userId, // principal = Clerk User ID
+                        null,   // credentials
                         Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
                     );
                 
                 // เก็บข้อมูลเพิ่มเติมใน details
-                authentication.setDetails(clerkUser);
+                authentication.setDetails(email);
                 
                 // ตั้งค่า Security Context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
