@@ -5,9 +5,10 @@ export async function apiRequest(
   options: RequestInit = {},
   token?: string | null
 ) {
-  const headers: HeadersInit = {
+  // สร้าง headers object แบบ Record<string, string>
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string> || {}),
   }
   
   // ถ้ามี token ให้เพิ่ม Authorization header
