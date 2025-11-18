@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import TripsList from './components/TripsList.vue'
+import LandingPage from './components/LandingPage.vue'
 </script>
 
 <template>
-  <TripsList />
+  <LandingPage />
 </template>
 
 <style scoped>
