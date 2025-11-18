@@ -1,19 +1,11 @@
-<!-- client/src/components/Navbar.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { Menu, X } from 'lucide-vue-next'
-import { useClerk, useUser, SignInButton, SignUpButton, UserButton } from '@clerk/vue'
+import { SignedIn, SignedOut, SignInButton, SignUpButton, useUser } from '@clerk/vue'
+import UserDropdown from './UserDropdown.vue'
 
 const { isLoaded } = useUser()
-const clerk = useClerk()
-const router = useRouter()
-
 const isOpen = ref(false)
-const isSignedIn = computed(() => isLoaded.value && !!clerk.value?.user)
-
-const goHome = () => {
-    router.push('/')
-}
 </script>
 
 <template>
@@ -22,56 +14,40 @@ const goHome = () => {
       <nav class="flex items-center justify-between">
         <!-- Logo/Title -->
         <div class="flex items-center">
-          <button @click="goHome" class="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+          <h1 class="text-2xl font-bold text-blue-600">
             เที่ยวไหนดี
-          </button>
+          </h1>
         </div>
 
         <!-- Desktop Navigation -->
         <div class="hidden md:flex items-center space-x-8">
-          <!-- Search Bar -->
-          <div class="relative">
-            <input
-              type="text"
-              placeholder="ค้นหาที่เกี่ยว"
-              class="w-64 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-            />
-            <svg
-              class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-
-          <!-- Helper Text -->
-          <p class="text-sm text-gray-500 hidden lg:block">
-            หาที่เกี่ยวแล้วไปกัน...
-          </p>
 
           <!-- Auth Buttons -->
-          <template v-if="!isSignedIn">
-            <SignInButton mode="modal">
-              <button class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
-                Login
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors">
-                Register
-              </button>
-            </SignUpButton>
+          <template v-if="isLoaded">
+            <!-- เมื่อยังไม่ login: แสดงปุ่ม Login และ Register -->
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button class="px-4 py-2 text-sm font-medium text-white hover:text-gray-500 transition-colors">
+                  Login
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button class="px-4 py-2 text-sm font-medium text-white  hover:text-gray-500 transition-colors">
+                  Register
+                </button>
+              </SignUpButton>
+            </SignedOut>
+            
+            <!-- เมื่อ login แล้ว: แสดง UserDropdown -->
+            <SignedIn>
+              <UserDropdown />
+            </SignedIn>
           </template>
-          <template v-else>
-            <UserButton />
-          </template>
+          
+          <!-- Loading state -->
+          <div v-else class="px-4 py-2 text-sm text-gray-500">
+            Loading...
+          </div>
         </div>
 
         <!-- Mobile Navigation Button -->
@@ -120,23 +96,30 @@ const goHome = () => {
 
             <!-- Mobile Auth Buttons -->
             <div class="flex flex-col space-y-2">
-              <template v-if="!isSignedIn">
-                <SignInButton mode="modal">
-                  <button class="w-full px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 border border-gray-300 rounded-md">
-                    Login
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                    Register
-                  </button>
-                </SignUpButton>
+              <template v-if="isLoaded">
+                <!-- เมื่อยังไม่ login: แสดงปุ่ม Login และ Register -->
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button class="w-full px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 border border-gray-300 rounded-md">
+                      Login
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                      Register
+                    </button>
+                  </SignUpButton>
+                </SignedOut>
+                
+                <!-- เมื่อ login แล้ว: แสดง UserDropdown -->
+                <SignedIn>
+                  <UserDropdown />
+                </SignedIn>
               </template>
-              <template v-else>
-                <div class="flex justify-center">
-                  <UserButton />
-                </div>
-              </template>
+              
+              <div v-else class="text-center text-sm text-gray-500">
+                Loading...
+              </div>
             </div>
           </div>
         </div>
