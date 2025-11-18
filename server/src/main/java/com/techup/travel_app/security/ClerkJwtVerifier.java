@@ -14,17 +14,13 @@ import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
-import jakarta.annotation.PostConstruct;
 
 @Component
 @RequiredArgsConstructor
 public class ClerkJwtVerifier {
     
-    @Value("${clerk.publishable.key:}")  // EDIT: เพิ่ม default value เป็น empty string
+    @Value("${clerk.publishable.key}")
     private String clerkPublishableKey;
-    
-    @Value("${clerk.instance:}")
-    private String clerkInstance;
     
     private final WebClient webClient = WebClient.create();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -122,22 +118,14 @@ public class ClerkJwtVerifier {
      * ดึง instance จาก publishable key หรือใช้ environment variable
      */
     private String extractInstanceFromPublishableKey() {
-        // ใช้ field แทน System.getProperty
-        if (clerkInstance != null && !clerkInstance.isEmpty()) {
-            return clerkInstance;
+        // ถ้ามี CLERK_INSTANCE ใน environment variable ให้ใช้
+        String instance = System.getProperty("clerk.instance");
+        if (instance != null && !instance.isEmpty()) {
+            return instance;
         }
         
-        // ถ้ายังไม่มี ให้ throw error
+        // หรือดึงจาก publishable key (ต้อง parse)
+        // สำหรับตอนนี้ให้ใช้ environment variable
         throw new RuntimeException("Please set CLERK_INSTANCE environment variable (e.g., your-instance.clerk.accounts.dev)");
-    }
-
-    @PostConstruct
-    public void validateConfiguration() {
-        if (clerkPublishableKey == null || clerkPublishableKey.isEmpty()) {
-            throw new IllegalStateException("clerk.publishable.key must be set");
-        }
-        if (clerkInstance == null || clerkInstance.isEmpty()) {
-            throw new IllegalStateException("clerk.instance must be set");
-        }
     }
 }
