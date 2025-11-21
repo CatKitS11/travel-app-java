@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://travel.catkits.work'
 
 export async function apiRequest(
   endpoint: string, 
@@ -31,15 +31,9 @@ export async function apiRequest(
 
 // Helper functions
 export const tripsApi = {
-  getAll: async (page = 0, size = 12, token?: string | null) => 
-    apiRequest(`/api/trips?page=${page}&size=${size}`, {}, token),
+  getAll: async (keyword: string = '') => 
+    apiRequest(`/trips?keywords=${keyword}`),
   
-  getById: async (id: number, token?: string | null) => 
-    apiRequest(`/api/trips/${id}`, {}, token),
-  
-  create: async (data: any, token?: string | null) => 
-    apiRequest('/api/trips/create', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }, token),
+  getById: async (id: string) => 
+    apiRequest(`/trips/${id}`),
 }
