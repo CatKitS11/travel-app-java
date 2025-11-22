@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plane, User, Menu } from 'lucide-vue-next';
+import { Plane, User, Menu, UserPlus } from 'lucide-vue-next';
 import { useClerk, useUser } from '@clerk/vue';
 import UserDropdown from './UserDropdown.vue';
 
@@ -8,6 +8,10 @@ const clerk = useClerk();
 
 const handleSignIn = () => {
   clerk.value?.openSignIn();
+};
+
+const handleSignUp = () => {
+  clerk.value?.openSignUp();
 };
 </script>
 
@@ -26,10 +30,10 @@ const handleSignIn = () => {
 
       <!-- Desktop Menu -->
       <div class="hidden md:flex items-center gap-8">
-        <a href="#" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Destinations</a>
+        <!-- <a href="#" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Destinations</a>
         <a href="#" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Hotels</a>
         <a href="#" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Flights</a>
-        <a href="#" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Packages</a>
+        <a href="#" class="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Packages</a> -->
       </div>
 
       <!-- Actions -->
@@ -37,14 +41,22 @@ const handleSignIn = () => {
         <template v-if="isSignedIn">
           <UserDropdown />
         </template>
-        <button 
-          v-else
-          @click="handleSignIn"
-          class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-all hover:scale-105 active:scale-95"
-        >
-          <User class="w-4 h-4" />
-          <span>Sign In</span>
-        </button>
+        <div v-else class="hidden md:flex items-center gap-3">
+          <button 
+            @click="handleSignIn"
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-all hover:scale-105 active:scale-95"
+          >
+            <User class="w-4 h-4" />
+            <span>Sign In</span>
+          </button>
+          <button 
+            @click="handleSignUp"
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+          >
+            <UserPlus class="w-4 h-4" />
+            <span>Sign Up</span>
+          </button>
+        </div>
         
         <!-- Mobile Menu Button -->
         <button class="md:hidden p-2 text-muted-foreground hover:text-foreground">
