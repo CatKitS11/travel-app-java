@@ -1,5 +1,14 @@
 <script setup lang="ts">
 import { Plane, User, Menu } from 'lucide-vue-next';
+import { useClerk, useUser } from '@clerk/vue';
+import UserDropdown from './UserDropdown.vue';
+
+const { isSignedIn } = useUser();
+const clerk = useClerk();
+
+const handleSignIn = () => {
+  clerk.value?.openSignIn();
+};
 </script>
 
 <template>
@@ -25,7 +34,14 @@ import { Plane, User, Menu } from 'lucide-vue-next';
 
       <!-- Actions -->
       <div class="flex items-center gap-4">
-        <button class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-all hover:scale-105 active:scale-95">
+        <template v-if="isSignedIn">
+          <UserDropdown />
+        </template>
+        <button 
+          v-else
+          @click="handleSignIn"
+          class="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary font-medium transition-all hover:scale-105 active:scale-95"
+        >
           <User class="w-4 h-4" />
           <span>Sign In</span>
         </button>

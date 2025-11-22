@@ -31,9 +31,14 @@ export async function apiRequest(
 
 // Helper functions
 export const tripsApi = {
-  getAll: async (keyword: string = '') => 
-    apiRequest(`/trips?keywords=${keyword}`),
+  getAll: async (_keyword: string = '') => {
+    // Backend ยังไม่รองรับ keywords parameter ตอนนี้
+    // ใช้ pagination params แทน
+    const response = await apiRequest(`/api/trips?page=0&size=12`)
+    // Backend ส่งกลับ PageResponse ที่มี content array
+    return response.content || response
+  },
   
   getById: async (id: string) => 
-    apiRequest(`/trips/${id}`),
+    apiRequest(`/api/trips/${id}`),
 }

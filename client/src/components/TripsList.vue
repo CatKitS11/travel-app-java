@@ -23,22 +23,31 @@ const error = ref('')
 const fetchTrips = async (keyword: string = '') => {
   try {
     loading.value = true
+    error.value = '' // Clear previous errors
     const response = await tripsApi.getAll(keyword)
     // Map API response to UI model
-    trips.value = response.map((item: any) => ({
-      id: item.eid,
-      title: item.title,
-      description: item.description,
+    // Handle both array response and PageResponse.content
+    const data = Array.isArray(response) ? response : (response.content || [])
+    
+    console.log('API Response:', response) // Debug log
+    console.log('Mapped data:', data) // Debug log
+    
+    trips.value = data.map((item: any) => ({
+      id: String(item.id || item.eid || ''), // Use id from backend, fallback to eid
+      title: item.title || '',
+      description: item.shortDescription || item.description || '', // Use shortDescription from backend
       price: Math.floor(Math.random() * 1000) + 500, // Mock price
       rating: (Math.random() * 1.5 + 3.5).toFixed(1), // Mock rating 3.5-5.0
       duration: `${Math.floor(Math.random() * 5) + 3} Days`, // Mock duration
-      location: item.tags[0] || 'Thailand', // Use first tag as location or default
-      image: item.photos?.[0] || '',
-      tags: item.tags || [],
-      url: item.url
+      location: item.province || item.tags?.[0] || 'Thailand', // Use province from backend
+      image: item.coverImage || item.photos?.[0] || '', // Use coverImage from backend
+      tags: item.tags || [], // May not exist in response
+      url: item.url || '#' // May not exist in response
     }))
+    
+    console.log('Trips after mapping:', trips.value) // Debug log
   } catch (err) {
-    console.error(err)
+    console.error('Error fetching trips:', err)
     error.value = 'Failed to load trips'
   } finally {
     loading.value = false
