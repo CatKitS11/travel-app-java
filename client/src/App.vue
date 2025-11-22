@@ -4,7 +4,7 @@ import LandingPage from './components/LandingPage.vue'
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col relative overflow-hidden">
+  <div class="min-h-screen flex flex-col bg-background relative">
     <!-- Ambient Background Elements -->
     <div class="fixed inset-0 -z-10 bg-background">
       <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-30 animate-pulse"></div>
@@ -13,7 +13,7 @@ import LandingPage from './components/LandingPage.vue'
 
     <Navbar />
     
-    <main class="flex-1 w-full">
+    <main>
       <LandingPage />
     </main>
     
