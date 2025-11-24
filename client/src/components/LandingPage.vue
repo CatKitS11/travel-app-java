@@ -23,7 +23,7 @@ const handleSearch = (query: string) => {
           
           <h1 class="py-4 text-7xl font-bold tracking-tight text-foreground leading-tight">
             ค้นหาจุดหมาย... <br />
-            <span class="bg-gradient-to-r from-primary via-yellow-600 to-primary bg-clip-text text-transparent bg-300% animate-gradient">
+            <span class="bg-gradient-to-r from-primary via-yellow-300 to-primary bg-clip-text text-transparent bg-300-percent animate-gradient">
               ที่ใช่สำหรับคุณ
             </span>
           </h1>
@@ -32,19 +32,23 @@ const handleSearch = (query: string) => {
             รวบรวม TripAdvisor ที่พักและเที่ยวบิน เพื่อการพักผ่อนที่สมบูรณ์แบบของคุณ
           </p>
         </div>
+        <div class="w-full max-w-5xl">
+          <SearchBar @search="handleSearch" />
+       </div>
+        
 
         <!-- เพิ่มปุ่ม scroll down บอก user -->
-        <div class="absolute bottom-10 animate-bounce">
+        <!-- <div class="absolute bottom-10 animate-bounce">
           👇 Scroll Down
-        </div>
+        </div> -->
     </section>
 
     <!-- Section 2: Search Bar & Intro -->
-    <section class="h-screen w-full snap-start flex flex-col items-center justify-center bg-accent/5">
+    <!-- <section class="h-screen w-full snap-start flex flex-col items-center justify-center bg-accent/5">
        <div class="w-full max-w-5xl">
           <SearchBar @search="handleSearch" />
        </div>
-    </section>
+    </section> -->
 
     <!-- Section 3: Trips List -->
     <section class="min-h-screen w-full snap-start pt-24 px-4 bg-background">
@@ -55,11 +59,11 @@ const handleSearch = (query: string) => {
 </template>
 
 <style scoped>
-.bg-300% {
-  background-size: 300% auto;
+.bg-300-percent {
+  background-size: 300% auto !important;
 }
 .animate-gradient {
-  animation: gradient 8s linear infinite;
+  animation: gradient 10s linear infinite;
 }
 @keyframes gradient {
   0% { background-position: 0% 50%; }
@@ -71,8 +75,8 @@ const handleSearch = (query: string) => {
   opacity: 0;
   transform: translateY(20px);
 }
-.delay-200 { animation-delay: 0.2s; }
 .delay-300 { animation-delay: 0.3s; }
+.delay-600 { animation-delay: 0.6s; }
 
 @keyframes fadeInUp {
   to {
