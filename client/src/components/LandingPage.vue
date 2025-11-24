@@ -5,7 +5,7 @@ import TripsList from './TripsList.vue'
 
 const tripsListRef = ref<InstanceType<typeof TripsList> | null>(null)
 const isSticky = ref(false)
-const scrollContainer = ref<HTMLElement | null>(null)
+// const scrollContainer = ref<HTMLElement | null>(null)
 
 const handleSearch = (query: string) => {
   tripsListRef.value?.fetchTrips(query)
