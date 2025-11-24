@@ -5,6 +5,7 @@ import { Search } from 'lucide-vue-next'
 const query = ref('')
 const emit = defineEmits<{
   (e: 'search', query: string): void
+  (e: 'focus'): void
 }>()
 
 const handleSearch = () => {
@@ -20,6 +21,7 @@ const handleSearch = () => {
     <input 
       v-model="query"
       @keyup.enter="handleSearch"
+      @focus="emit('focus')"
       type="text" 
       placeholder="Where do you want to go?" 
       class="w-full h-16 pl-14 pr-32 rounded-2xl bg-white/50 hover:bg-white/80 focus:bg-white transition-all border-none outline-none text-lg placeholder:text-muted-foreground/70 text-foreground shadow-inner"

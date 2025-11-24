@@ -1,13 +1,47 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import SearchBar from './SearchBar.vue'
 import TripsList from './TripsList.vue'
 
 const tripsListRef = ref<InstanceType<typeof TripsList> | null>(null)
+const isSticky = ref(false)
+const scrollContainer = ref<HTMLElement | null>(null)
 
 const handleSearch = (query: string) => {
   tripsListRef.value?.fetchTrips(query)
 }
+
+const handleFocus = () => {
+  isSticky.value = true
+  // เลื่อนหน้าจอไปที่ Section 2
+  const section2 = document.getElementById('trips-section')
+  section2?.scrollIntoView({ behavior: 'smooth' })
+}
+
+const handleScroll = (e: Event) => {
+  const target = e.target as HTMLElement
+  // ถ้า scroll ลงมาเกิน 30% ของความสูงจอ ให้ SearchBar ลอย
+  if (target.scrollTop > window.innerHeight * 0.3) {
+    isSticky.value = true
+  } else {
+    isSticky.value = false
+  }
+}
+
+onMounted(() => {
+  // หาตัว container ที่มี scroll (ในที่นี้คือ div ใน App.vue ที่มี class overflow-y-auto)
+  const scroller = document.querySelector('.overflow-y-auto')
+  if (scroller) {
+    scroller.addEventListener('scroll', handleScroll)
+  }
+})
+
+onUnmounted(() => {
+  const scroller = document.querySelector('.overflow-y-auto')
+  if (scroller) {
+    scroller.removeEventListener('scroll', handleScroll)
+  }
+})
 </script>
 
 <template>
@@ -32,26 +66,20 @@ const handleSearch = (query: string) => {
             รวบรวม TripAdvisor ที่พักและเที่ยวบิน เพื่อการพักผ่อนที่สมบูรณ์แบบของคุณ
           </p>
         </div>
-        <div class="w-full max-w-5xl">
-          <SearchBar @search="handleSearch" />
+        <div class="w-full max-w-5xl h-20 relative z-40 px-4">
+          <div :class="[
+            'transition-all duration-900 ease-in-out',
+            isSticky 
+              ? 'fixed top-24 left-0 right-0 mx-auto w-full max-w-5xl z-50 px-4' 
+              : 'w-full relative'
+          ]">
+            <SearchBar @search="handleSearch" @focus="handleFocus" />
+          </div>
        </div>
-        
-
-        <!-- เพิ่มปุ่ม scroll down บอก user -->
-        <!-- <div class="absolute bottom-10 animate-bounce">
-          👇 Scroll Down
-        </div> -->
     </section>
 
-    <!-- Section 2: Search Bar & Intro -->
-    <!-- <section class="h-screen w-full snap-start flex flex-col items-center justify-center bg-accent/5">
-       <div class="w-full max-w-5xl">
-          <SearchBar @search="handleSearch" />
-       </div>
-    </section> -->
-
-    <!-- Section 3: Trips List -->
-    <section class="min-h-screen w-full snap-start pt-24 px-4 bg-background">
+    <!-- Section 2: Trips List -->
+    <section id="trips-section" class="min-h-screen w-full snap-start pt-48 px-4 bg-background">
        <TripsList ref="tripsListRef" />
     </section>
 
