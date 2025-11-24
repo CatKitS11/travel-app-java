@@ -1,0 +1,26 @@
+# Cursor IDE
+.cursor/
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.local
+
+# Logs
+*.log
+logs/
+desktop.ini

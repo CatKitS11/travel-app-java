@@ -1,11 +1,33 @@
 <script setup lang="ts">
+import Navbar from './components/Navbar.vue'
 import LandingPage from './components/LandingPage.vue'
 </script>
 
 <template>
-  <LandingPage />
+  <!-- 
+    h-screen: สูงเต็มจอ
+    overflow-y-auto: ให้ scroll แนวตั้งได้
+    snap-y: (tailwind) scroll-snap-type: y var(...)
+    snap-mandatory: (tailwind) scroll-snap-type: y mandatory
+  -->
+  <div class="h-screen overflow-y-auto snap-y snap-mandatory scroll-smooth relative">
+    
+    <!-- Navbar (ถ้าอยากให้ติดข้างบนตลอด ต้องอยู่นอก snap container หรือใช้ sticky ใน section แรก) -->
+    <!-- แต่ถ้าอยากให้ Navbar เลื่อนไปกับ section แรก ก็ใส่ไว้ใน section แรกได้ -->
+    <Navbar class="fixed top-0 left-0 right-0 z-50" /> 
+    
+    <main class="w-full">
+      <LandingPage />
+    </main>
+    
+    <!-- Footer อาจจะเป็น section สุดท้าย -->
+    <footer class="snap-start min-h-[50vh] flex items-center justify-center bg-muted">
+       <!-- ... footer content ... -->
+    </footer>
+
+  </div>
 </template>
 
 <style scoped>
-
+/* Scoped styles if needed, but relying on utility classes */
 </style>

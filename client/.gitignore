@@ -12,8 +12,11 @@ dist
 dist-ssr
 *.local
 
+*.cursor
+
 # Editor directories and files
 .vscode/*
+.cursor/*
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -23,3 +26,4 @@ dist-ssr
 *.sln
 *.sw?
 .env
+desktop.ini
