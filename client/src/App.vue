@@ -4,22 +4,27 @@ import LandingPage from './components/LandingPage.vue'
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-background relative">
-    <!-- Ambient Background Elements -->
-    <div class="fixed inset-0 -z-10 bg-background">
-      <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-30 animate-pulse"></div>
-      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl opacity-30 animate-pulse delay-1000"></div>
-    </div>
-
-    <Navbar />
+  <!-- 
+    h-screen: สูงเต็มจอ
+    overflow-y-auto: ให้ scroll แนวตั้งได้
+    snap-y: (tailwind) scroll-snap-type: y var(...)
+    snap-mandatory: (tailwind) scroll-snap-type: y mandatory
+  -->
+  <div class="h-screen overflow-y-auto snap-y snap-mandatory scroll-smooth relative">
     
-    <main>
+    <!-- Navbar (ถ้าอยากให้ติดข้างบนตลอด ต้องอยู่นอก snap container หรือใช้ sticky ใน section แรก) -->
+    <!-- แต่ถ้าอยากให้ Navbar เลื่อนไปกับ section แรก ก็ใส่ไว้ใน section แรกได้ -->
+    <Navbar class="fixed top-0 left-0 right-0 z-50" /> 
+    
+    <main class="w-full">
       <LandingPage />
     </main>
     
-    <footer class="py-8 text-center text-muted-foreground text-sm">
-      <p>© 2024 Wanderlust Travels. Crafted with passion.</p>
+    <!-- Footer อาจจะเป็น section สุดท้าย -->
+    <footer class="snap-start min-h-[50vh] flex items-center justify-center bg-muted">
+       <!-- ... footer content ... -->
     </footer>
+
   </div>
 </template>
 

@@ -11,37 +11,45 @@ const handleSearch = (query: string) => {
 </script>
 
 <template>
-  <div class="relative w-full flex flex-col items-center justify-center py-36 px-4 md:px-6 lg:px-8">
+  <div class="w-full">
     
-    <!-- Hero Content -->
-    <div class="py-14 text-center max-w-4xl mx-auto space-y-6 animate-fade-in-up">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/50 text-accent-foreground text-sm font-medium mb-4 border border-accent/20">
-        <span>✨ ออกเดินทางสู่โลกกว้างไปกับเรา</span>
-      </div>
-      
-      <h1 class="py-4 text-7xl font-bold tracking-tight text-foreground leading-tight">
-        ค้นหาจุดหมาย... <br />
-        <span class="bg-gradient-to-r from-primary via-yellow-600 to-primary bg-clip-text text-transparent bg-300% animate-gradient">
-          ที่ใช่สำหรับคุณ
-        </span>
-      </h1>
-      
-      <p class="text-lg py-4 md:text-xl text-muted-foreground max-w-2xl mx-auto">
-        รวบรวม TripAdvisor ที่พักและเที่ยวบิน เพื่อการพักผ่อนที่สมบูรณ์แบบของคุณ
-      </p>
-    </div>
+    <!-- Section 1: Hero (หน้าแรก) -->
+    <section class="h-screen w-full snap-start flex flex-col items-center justify-center relative">
+       <!-- เนื้อหา Hero เดิมของคุณ -->
+       <div class="py-14 text-center max-w-4xl mx-auto space-y-6 animate-fade-in-up">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/50 text-accent-foreground text-sm font-medium mb-4 border border-accent/20">
+            <span>✨ ออกเดินทางสู่โลกกว้างไปกับเรา</span>
+          </div>
+          
+          <h1 class="py-4 text-7xl font-bold tracking-tight text-foreground leading-tight">
+            ค้นหาจุดหมาย... <br />
+            <span class="bg-gradient-to-r from-primary via-yellow-600 to-primary bg-clip-text text-transparent bg-300% animate-gradient">
+              ที่ใช่สำหรับคุณ
+            </span>
+          </h1>
+          
+          <p class="text-lg py-4 md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            รวบรวม TripAdvisor ที่พักและเที่ยวบิน เพื่อการพักผ่อนที่สมบูรณ์แบบของคุณ
+          </p>
+        </div>
 
-    <!-- Floating Search Bar -->
-    <div class="w-full max-w-5xl mt-12 py-8 relative z-10 animate-fade-in-up delay-200">
-      <div class="glass-panel p-2 rounded-3xl shadow-2xl shadow-primary/10">
-        <SearchBar @search="handleSearch" />
-      </div>
-    </div>
+        <!-- เพิ่มปุ่ม scroll down บอก user -->
+        <div class="absolute bottom-10 animate-bounce">
+          👇 Scroll Down
+        </div>
+    </section>
 
-    <!-- Trips List Section -->
-    <div class="w-full mt-20 animate-fade-in-up delay-300">
-      <TripsList ref="tripsListRef" />
-    </div>
+    <!-- Section 2: Search Bar & Intro -->
+    <section class="h-screen w-full snap-start flex flex-col items-center justify-center bg-accent/5">
+       <div class="w-full max-w-5xl">
+          <SearchBar @search="handleSearch" />
+       </div>
+    </section>
+
+    <!-- Section 3: Trips List -->
+    <section class="min-h-screen w-full snap-start pt-24 px-4 bg-background">
+       <TripsList ref="tripsListRef" />
+    </section>
 
   </div>
 </template>
