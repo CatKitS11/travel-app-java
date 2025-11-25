@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue' // เพิ่ม watch
 import { MapPin, Star, Clock } from 'lucide-vue-next'
 import { tripsApi } from '../services/api'
+import { useAuth } from '@clerk/vue' // 1. นำเข้าเครื่องมือดึงบัตรผ่าน
+
+// 2. ดึงเครื่องมือมาใช้
+const { getToken, isSignedIn } = useAuth()
 
 interface Trip {
   id: string
@@ -24,7 +28,12 @@ const fetchTrips = async (keyword: string = '') => {
   try {
     loading.value = true
     error.value = '' // Clear previous errors
-    const response = await tripsApi.getAll(keyword)
+    
+    // 3. ขอ "บัตรผ่าน" จาก Clerk
+    const token = await getToken.value()
+    
+    // 4. ส่ง "บัตรผ่าน" ไปพร้อมกับการเรียกข้อมูล
+    const response = await tripsApi.getAll(keyword, token)
     // Map API response to UI model
     // Handle both array response and PageResponse.content
     const data = Array.isArray(response) ? response : (response.content || [])
@@ -53,6 +62,11 @@ const fetchTrips = async (keyword: string = '') => {
     loading.value = false
   }
 }
+
+// 5. เพิ่ม: ถ้ามีการ Login/Logout ให้ดึงข้อมูลใหม่ทันที
+watch(isSignedIn, () => {
+  fetchTrips()
+})
 
 onMounted(() => {
   fetchTrips()

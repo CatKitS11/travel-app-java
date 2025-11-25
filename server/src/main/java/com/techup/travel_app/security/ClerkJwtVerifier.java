@@ -30,25 +30,35 @@ public class ClerkJwtVerifier {
      */
     public Claims verifyToken(String token) {
         try {
-            // ดึง instance จาก publishable key
-            // Format: pk_test_xxxxx หรือ pk_live_xxxxx
-            String instance = extractInstanceFromPublishableKey();
-            String jwksUrl = String.format("https://%s/.well-known/jwks.json", instance);
+            // 1. Decode Token Payload เพื่อหา Issuer (iss)
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) {
+                throw new RuntimeException("Invalid JWT token format");
+            }
             
-            // ดึง JWKS จาก Clerk
+            String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]));
+            JsonNode payload = objectMapper.readTree(payloadJson);
+            
+            if (!payload.has("iss")) {
+                 throw new RuntimeException("Token missing 'iss' claim");
+            }
+            
+            String issuer = payload.get("iss").asText();
+            String jwksUrl = issuer + "/.well-known/jwks.json";
+            
+            // 2. ดึง JWKS จาก Clerk
             JsonNode jwks = webClient.get()
                 .uri(jwksUrl)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
                 .block();
             
-            // Parse token header เพื่อหา kid (key ID)
-            String[] parts = token.split("\\.");
+            // 3. Parse token header เพื่อหา kid (key ID)
             String headerJson = new String(Base64.getUrlDecoder().decode(parts[0]));
             JsonNode header = objectMapper.readTree(headerJson);
             String kid = header.get("kid").asText();
             
-            // หา key ที่ตรงกับ kid
+            // 4. หา key ที่ตรงกับ kid
             JsonNode key = null;
             for (JsonNode k : jwks.get("keys")) {
                 if (k.get("kid").asText().equals(kid)) {
@@ -61,10 +71,10 @@ public class ClerkJwtVerifier {
                 throw new RuntimeException("Key not found for kid: " + kid);
             }
             
-            // สร้าง PublicKey จาก JWK
+            // 5. สร้าง PublicKey จาก JWK
             PublicKey publicKey = createPublicKey(key);
             
-            // Verify token
+            // 6. Verify token
             return Jwts.parser()
                 .verifyWith(publicKey)
                 .build()
@@ -89,9 +99,13 @@ public class ClerkJwtVerifier {
      */
     public String getEmailFromToken(String token) {
         Claims claims = verifyToken(token);
-        JsonNode emailNode = claims.get("email", JsonNode.class);
-        if (emailNode != null && emailNode.isArray() && emailNode.size() > 0) {
-            return emailNode.get(0).get("email_address").asText();
+        try {
+            JsonNode emailNode = claims.get("email", JsonNode.class);
+            if (emailNode != null && emailNode.isArray() && emailNode.size() > 0) {
+                return emailNode.get(0).get("email_address").asText();
+            }
+        } catch (Exception e) {
+            // ignore
         }
         return null;
     }
@@ -112,20 +126,5 @@ public class ClerkJwtVerifier {
         RSAPublicKeySpec spec = new RSAPublicKeySpec(modulus, exponent);
         KeyFactory factory = KeyFactory.getInstance("RSA");
         return factory.generatePublic(spec);
-    }
-    
-    /**
-     * ดึง instance จาก publishable key หรือใช้ environment variable
-     */
-    private String extractInstanceFromPublishableKey() {
-        // ถ้ามี CLERK_INSTANCE ใน environment variable ให้ใช้
-        String instance = System.getProperty("clerk.instance");
-        if (instance != null && !instance.isEmpty()) {
-            return instance;
-        }
-        
-        // หรือดึงจาก publishable key (ต้อง parse)
-        // สำหรับตอนนี้ให้ใช้ environment variable
-        throw new RuntimeException("Please set CLERK_INSTANCE environment variable (e.g., your-instance.clerk.accounts.dev)");
     }
 }

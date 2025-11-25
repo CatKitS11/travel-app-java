@@ -1,6 +1,27 @@
 <script setup lang="ts">
 import Navbar from './components/Navbar.vue'
 import LandingPage from './components/LandingPage.vue'
+import { watch } from 'vue'
+import { useAuth } from '@clerk/vue'
+import { apiRequest } from './services/api'
+
+const { isSignedIn, getToken } = useAuth()
+
+// เฝ้าดูสถานะการ Login
+watch(isSignedIn, async (newValue) => {
+  if (newValue) {
+    try {
+      const token = await getToken.value()
+      // ยิงไปบอก Server ว่า Login แล้วนะ (Server จะ Sync User ให้เอง)
+      console.log('Syncing user with backend...')
+      // ต้องใส่ method POST เพราะ Controller รับ @PostMapping
+      await apiRequest('/api/auth/sync', { method: 'POST' }, token)
+      console.log('User synced successfully!')
+    } catch (err) {
+      console.error('Failed to sync user:', err)
+    }
+  }
+}, { immediate: true })
 </script>
 
 <template>

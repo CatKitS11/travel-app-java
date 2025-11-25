@@ -26,8 +26,9 @@ public class User {
     @Column(name = "email", unique = true, nullable = false, length = 255)
     private String email;
 
-    // @Column(name = "password_hash", nullable = false, columnDefinition = "TEXT")
-    // private String passwordHash;
+    // แก้ไขแบบลูกทุ่ง: ใส่ passwordHash กลับมา เพื่อหลอก DB
+    @Column(name = "password_hash", nullable = false, columnDefinition = "TEXT")
+    private String passwordHash;
 
     @Column(name = "display_name", length = 100)
     private String displayName;

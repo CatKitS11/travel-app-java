@@ -13,7 +13,10 @@ export async function apiRequest(
   
   // ถ้ามี token ให้เพิ่ม Authorization header
   if (token) {
+    console.log('Adding Authorization token to request')
     headers['Authorization'] = `Bearer ${token}`
+  } else {
+    console.log('No token provided for request')
   }
   
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -31,14 +34,14 @@ export async function apiRequest(
 
 // Helper functions
 export const tripsApi = {
-  getAll: async (_keyword: string = '') => {
+  getAll: async (keyword: string = '', token?: string | null) => { // รับ token เพิ่ม
     // Backend ยังไม่รองรับ keywords parameter ตอนนี้
     // ใช้ pagination params แทน
-    const response = await apiRequest(`/api/trips?page=0&size=12`)
+    const response = await apiRequest(`/api/trips?page=0&size=12&keyword=${keyword}`, {}, token) // ส่ง token ต่อ
     // Backend ส่งกลับ PageResponse ที่มี content array
     return response.content || response
   },
   
-  getById: async (id: string) => 
-    apiRequest(`/api/trips/${id}`),
+  getById: async (id: string, token?: string | null) => // รับ token เพิ่ม
+    apiRequest(`/api/trips/${id}`, {}, token), // ส่ง token ต่อ
 }
