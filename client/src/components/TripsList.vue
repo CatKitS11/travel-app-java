@@ -40,7 +40,7 @@ const fetchTrips = async (keyword: string = '') => {
       duration: `${Math.floor(Math.random() * 5) + 3} Days`, 
       location: item.province || item.tags?.[0] || 'Thailand', 
       image: item.coverImage || item.photos?.[0] || '', 
-      photos: item.photos || [item.coverImage || ''], // EDIT: ใช้ array รูปภาพจริงที่มี ถ้าไม่มีก็ใช้ coverImage เป็นรูปเดียว
+      photos: item.photos || [item.coverImage || ''], // EDIT: ใช้ photos ที่ backend ส่งมาได้เลย
       tags: item.tags || [], 
       url: item.url || '#' 
     }))
@@ -120,7 +120,7 @@ defineExpose({ fetchTrips })
             <div class="flex gap-2">
                <!-- แสดงรูปเล็ก 3 รูป (รูปที่ 2-4) -->
                <div v-for="(photo, idx) in trip.photos.slice(1, 4)" :key="idx" 
-                    class="w-10 h-10 rounded-lg overflow-hidden border border-border/50 shrink-0">
+                    class="w-10 h-10 rounded-md overflow-hidden border border-border/50 shrink-0">
                  <img :src="photo" :alt="trip.title" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
                </div>
             </div>

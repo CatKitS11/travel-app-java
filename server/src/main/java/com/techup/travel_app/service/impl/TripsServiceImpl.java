@@ -70,6 +70,7 @@ public class TripsServiceImpl implements TripsService {
             .id(trip.getId())
             .title(trip.getTitle())
             .coverImage(coverImage)
+            .photos(trip.getPhotos()) // EDIT: ส่ง photos array ไปด้วย
             .province(province)
             .shortDescription(shortDescription)
             .build();
