@@ -6,6 +6,8 @@ import com.techup.travel_app.dto.TripsResponse;
 import org.springframework.data.domain.Pageable;
 
 public interface TripsService {
-    PageResponse<TripsListItemResponse> getAllTrips(Pageable pageable);
+    // แก้ไขให้รับ keyword
+    PageResponse<TripsListItemResponse> getAllTrips(String keyword, Pageable pageable);
+    
     TripsResponse getTripById(Long id);
 }

@@ -25,8 +25,17 @@ public class TripsServiceImpl implements TripsService {
     private final TripsRepository tripsRepository;
     
     @Override
-    public PageResponse<TripsListItemResponse> getAllTrips(Pageable pageable) {
-        Page<Trips> tripsPage = tripsRepository.findAll(pageable);
+    public PageResponse<TripsListItemResponse> getAllTrips(String keyword, Pageable pageable) {
+        Page<Trips> tripsPage;
+        
+        // เช็คว่ามี keyword ไหม
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            // ถ้ามี -> เรียก findByKeyword
+            tripsPage = tripsRepository.findByKeyword(keyword, pageable);
+        } else {
+            // ถ้าไม่มี -> เรียก findAll เหมือนเดิม
+            tripsPage = tripsRepository.findAll(pageable);
+        }
         
         List<TripsListItemResponse> content = tripsPage.getContent().stream()
             .map(this::mapToListItemResponse)

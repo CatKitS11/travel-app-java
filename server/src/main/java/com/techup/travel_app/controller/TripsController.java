@@ -23,15 +23,16 @@ public class TripsController {
     public ResponseEntity<PageResponse<TripsListItemResponse>> getAllTrips(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
-            @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDir) {
+            @RequestParam(defaultValue = "created_at") String sortBy, // EDIT: เปลี่ยนเป็น created_at
+            @RequestParam(defaultValue = "DESC") String sortDir,
+            @RequestParam(required = false) String keyword) {
         
         Sort sort = sortDir.equalsIgnoreCase("ASC") 
             ? Sort.by(sortBy).ascending() 
             : Sort.by(sortBy).descending();
         
         Pageable pageable = PageRequest.of(page, size, sort);
-        PageResponse<TripsListItemResponse> response = tripsService.getAllTrips(pageable);
+        PageResponse<TripsListItemResponse> response = tripsService.getAllTrips(keyword, pageable);
         
         return ResponseEntity.ok(response);
     }
