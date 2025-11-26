@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { MapPin, Clock, ImageOff } from 'lucide-vue-next' // EDIT: เพิ่ม ImageOff icon
+import { MapPin, Map as MapIcon, ImageOff, ChevronLeft, ChevronRight } from 'lucide-vue-next' // เพิ่ม icon
 import { tripsApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
 
@@ -21,19 +21,46 @@ interface Trip {
 const trips = ref<Trip[]>([])
 const loading = ref(true)
 const error = ref('')
+// เพิ่ม state สำหรับ Pagination
+const currentPage = ref(0) // เริ่มหน้า 0 (Spring Boot ใช้ 0-based index)
+const totalPages = ref(0)
 
-const fetchTrips = async (keyword: string = '') => {
+// แก้ไข fetchTrips ให้รับ pageNumber
+const fetchTrips = async (keyword: string = '', page: number = 0) => {
   try {
     loading.value = true
     error.value = ''
+    
+    // อัปเดตหน้าปัจจุบันที่กำลังดึง
+    currentPage.value = page
 
     const token = await getToken.value()
-    const response = await tripsApi.getAll(keyword, token)
-    const data = Array.isArray(response) ? response : (response.content || [])
+    
+    // เรียก API โดยส่ง page และ size=4
+    // getAll(keyword, token, page, size)
+    const response = await tripsApi.getAll(keyword, token, page, 4) // EDIT: ส่ง size=4 ตรงนี้
+    console.log('Full Response:', response) // Debug 1: ดู Response เต็มๆ
 
-    console.log('Mapped data:', data) // Debug log
+    // ถ้า response เป็น Array แสดงว่า Backend ส่งมาแค่ข้อมูล (ไม่มี Pagination info)
+    if (Array.isArray(response)) {
+       console.log('Response is Array (No pagination metadata)')
+       // ถ้าจะทำ Pagination ต้องรู้จำนวนทั้งหมด หรือใช้ Client-side pagination
+       totalPages.value = 1 // สมมติไปก่อน
+    } else {
+       // ถ้าเป็น Object (PageResponse)
+       console.log('Response is Object with totalPages:', response.totalPages)
+       totalPages.value = response.totalPages || 1
+    }
 
-    trips.value = data.map((item: any) => ({
+    // Handle response
+    const content = Array.isArray(response) ? response : (response.content || [])
+    
+    // เก็บ totalPages จาก response (ถ้ามี)
+    // if (!Array.isArray(response) && response.totalPages) { // ถูกลบเนื่องจากมีการตรวจสอบด้านบน
+    //   totalPages.value = response.totalPages
+    // }
+
+    trips.value = content.map((item: any) => ({
       id: String(item.id || item.eid || ''),
       title: item.title || '',
       description: item.shortDescription || item.description || '',
@@ -44,13 +71,21 @@ const fetchTrips = async (keyword: string = '') => {
       tags: item.tags || [],
       url: item.url || '#'
     }))
-
-    console.log('Trips after mapping:', trips.value) // Debug log
+    
   } catch (err) {
     console.error('Error fetching trips:', err)
     error.value = 'Failed to load trips'
   } finally {
     loading.value = false
+  }
+}
+
+// ฟังก์ชันเปลี่ยนหน้า
+const changePage = (newPage: number) => {
+  if (newPage >= 0 && newPage < totalPages.value) {
+    fetchTrips('', newPage) // ส่ง keyword เดิม (ถ้ามีต้องเก็บ state keyword ไว้ด้วย)
+    // เลื่อน scroll ไปที่หัวข้อ
+    document.getElementById('trips-header')?.scrollIntoView({ behavior: 'smooth' })
   }
 }
 
@@ -81,9 +116,33 @@ const handleImageError = (e: Event) => {
 
 <template>
   <div class="w-full max-w-[1500px] mx-auto px-4 pb-20">
-    <div class="flex items-center justify-between mb-8">
+    <div id="trips-header" class="flex items-center justify-between mb-8">
       <h2 class="text-3xl font-bold text-foreground">ค้นหาที่เที่ยวที่สนใจ</h2>
-      <button class="text-primary font-medium hover:underline">View All</button>
+      
+      <!-- Pagination Controls (แทน View All) -->
+      <div class="flex items-center gap-2" v-if="totalPages > 1">
+        <button 
+          @click="changePage(currentPage - 1)" 
+          :disabled="currentPage === 0 || loading"
+          class="p-2 rounded-full hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Previous Page"
+        >
+          <ChevronLeft class="w-5 h-5" />
+        </button>
+        
+        <span class="text-sm font-medium text-muted-foreground">
+          {{ currentPage + 1 }} / {{ totalPages }}
+        </span>
+        
+        <button 
+          @click="changePage(currentPage + 1)" 
+          :disabled="currentPage >= totalPages - 1 || loading"
+          class="p-2 rounded-full hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Next Page"
+        >
+          <ChevronRight class="w-5 h-5" />
+        </button>
+      </div>
     </div>
 
     <!-- Loading State -->

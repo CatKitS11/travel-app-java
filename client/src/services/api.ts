@@ -34,14 +34,16 @@ export async function apiRequest(
 
 // Helper functions
 export const tripsApi = {
-  getAll: async (keyword: string = '', token?: string | null) => { // รับ token เพิ่ม
-    // Backend ยังไม่รองรับ keywords parameter ตอนนี้
-    // ใช้ pagination params แทน
-    const response = await apiRequest(`/api/trips?page=0&size=12&keyword=${keyword}`, {}, token) // ส่ง token ต่อ
-    // Backend ส่งกลับ PageResponse ที่มี content array
-    return response.content || response
+  // แก้ให้รับ page และ limit (size) เพิ่ม
+  getAll: async (keyword: string = '', token?: string | null, page: number = 0, limit: number = 4) => { 
+    // ส่ง page และ limit (size) ไปหา backend
+    const response = await apiRequest(`/api/trips?page=${page}&size=${limit}&keyword=${keyword}`, {}, token)
+    
+    // คืนค่า response ทั้งก้อน (เพื่อให้ได้ totalPages) ไม่ใช่แค่ content
+    // ถ้า Backend return { content: [...], totalPages: 5 }
+    return response 
   },
   
-  getById: async (id: string, token?: string | null) => // รับ token เพิ่ม
-    apiRequest(`/api/trips/${id}`, {}, token), // ส่ง token ต่อ
+  getById: async (id: string, token?: string | null) => 
+    apiRequest(`/api/trips/${id}`, {}, token),
 }
