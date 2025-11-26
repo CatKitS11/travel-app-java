@@ -7,15 +7,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map; // เพิ่ม import
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     @PostMapping("/sync")
     public ResponseEntity<?> syncUser(@AuthenticationPrincipal User user) {
-        // ถ้าเข้ามาถึงตรงนี้ได้ แสดงว่า JwtAuthenticationFilter ทำงานผ่าน
-        // และ User ถูก Sync ลง DB เรียบร้อยแล้ว
-        return ResponseEntity.ok().body("User synced successfully: " + (user != null ? user.getEmail() : "Unknown"));
+        // แก้ตรงนี้ให้ return เป็น Map หรือ Object ที่ Spring จะแปลงเป็น JSON
+        return ResponseEntity.ok().body(Map.of(
+            "message", "User synced successfully",
+            "email", (user != null ? user.getEmail() : "Unknown")
+        ));
     }
 }
 

@@ -73,6 +73,12 @@ public class TripsServiceImpl implements TripsService {
             .photos(trip.getPhotos()) // EDIT: ส่ง photos array ไปด้วย
             .province(province)
             .shortDescription(shortDescription)
+            .tags(trip.getTags())
+            .latitude(trip.getLatitude())
+            .longitude(trip.getLongitude())
+            // .authorId(trip.getAuthor() != null ? trip.getAuthor().getId() : null)
+            // .createdAt(trip.getCreatedAt())
+            // .updatedAt(trip.getUpdatedAt())
             .build();
     }
     
@@ -95,7 +101,7 @@ public class TripsServiceImpl implements TripsService {
             .latitude(trip.getLatitude())
             .longitude(trip.getLongitude())
             .authorId(trip.getAuthor() != null ? trip.getAuthor().getId() : null)
-            .author(authorInfo)
+            // .author(authorInfo)
             .createdAt(trip.getCreatedAt())
             .updatedAt(trip.getUpdatedAt())
             .build();

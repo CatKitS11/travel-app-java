@@ -16,4 +16,7 @@ public class TripsListItemResponse {
     private String[] photos;   // EDIT: เพิ่ม field นี้
     private String province; // ดึงจาก tags หรือ null
     private String shortDescription; // description.substring(0, 120) หรือ description
+    private String[] tags; // ดึงจาก tags หรือ null
+    private double latitude; // ดึงจาก latitude หรือ null
+    private double longitude; // ดึงจาก longitude หรือ null
 }

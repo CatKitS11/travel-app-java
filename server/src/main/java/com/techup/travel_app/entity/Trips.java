@@ -30,21 +30,10 @@ public class Trips {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
     
-    // @ElementCollection
-    // @CollectionTable(name = "trip_photos", joinColumns = @JoinColumn(name = "trip_id"))
-    // @Column(name = "photo")
-    // @Builder.Default
-    // private List<String> photos = new ArrayList<>();
     @JdbcTypeCode(SqlTypes.ARRAY)                                     
     @Column(name = "photos", columnDefinition = "text[]")             
     @Builder.Default                                                  
     private String[] photos = new String[0];  
-    
-    // @ElementCollection
-    // @CollectionTable(name = "trip_tags", joinColumns = @JoinColumn(name = "trip_id"))
-    // @Column(name = "tag")
-    // @Builder.Default
-    // private List<String> tags = new ArrayList<>();
     @JdbcTypeCode(SqlTypes.ARRAY)                                     
     @Column(name = "tags", columnDefinition = "text[]")               
     @Builder.Default                                                  
