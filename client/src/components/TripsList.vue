@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue' // เพิ่ม watch
-import { MapPin, Star, Clock } from 'lucide-vue-next'
+import { ref, onMounted, watch } from 'vue'
+import { MapPin, Clock } from 'lucide-vue-next'
 import { tripsApi } from '../services/api'
-import { useAuth } from '@clerk/vue' // 1. นำเข้าเครื่องมือดึงบัตรผ่าน
+import { useAuth } from '@clerk/vue'
 
-// 2. ดึงเครื่องมือมาใช้
 const { getToken, isSignedIn } = useAuth()
 
 interface Trip {
   id: string
   title: string
   description: string
-  price: number
-  rating: number
   duration: string
   location: string
   image: string
+  photos: string[]
   tags: string[]
   url: string
 }
@@ -27,31 +25,24 @@ const error = ref('')
 const fetchTrips = async (keyword: string = '') => {
   try {
     loading.value = true
-    error.value = '' // Clear previous errors
+    error.value = ''
     
-    // 3. ขอ "บัตรผ่าน" จาก Clerk
     const token = await getToken.value()
-    
-    // 4. ส่ง "บัตรผ่าน" ไปพร้อมกับการเรียกข้อมูล
     const response = await tripsApi.getAll(keyword, token)
-    // Map API response to UI model
-    // Handle both array response and PageResponse.content
     const data = Array.isArray(response) ? response : (response.content || [])
     
-    console.log('API Response:', response) // Debug log
     console.log('Mapped data:', data) // Debug log
     
     trips.value = data.map((item: any) => ({
-      id: String(item.id || item.eid || ''), // Use id from backend, fallback to eid
+      id: String(item.id || item.eid || ''), 
       title: item.title || '',
-      description: item.shortDescription || item.description || '', // Use shortDescription from backend
-      price: Math.floor(Math.random() * 1000) + 500, // Mock price
-      rating: (Math.random() * 1.5 + 3.5).toFixed(1), // Mock rating 3.5-5.0
-      duration: `${Math.floor(Math.random() * 5) + 3} Days`, // Mock duration
-      location: item.province || item.tags?.[0] || 'Thailand', // Use province from backend
-      image: item.coverImage || item.photos?.[0] || '', // Use coverImage from backend
-      tags: item.tags || [], // May not exist in response
-      url: item.url || '#' // May not exist in response
+      description: item.shortDescription || item.description || '', 
+      duration: `${Math.floor(Math.random() * 5) + 3} Days`, 
+      location: item.province || item.tags?.[0] || 'Thailand', 
+      image: item.coverImage || item.photos?.[0] || '', 
+      photos: item.photos || [item.coverImage || ''], // EDIT: ใช้ array รูปภาพจริงที่มี ถ้าไม่มีก็ใช้ coverImage เป็นรูปเดียว
+      tags: item.tags || [], 
+      url: item.url || '#' 
     }))
     
     console.log('Trips after mapping:', trips.value) // Debug log
@@ -63,7 +54,6 @@ const fetchTrips = async (keyword: string = '') => {
   }
 }
 
-// 5. เพิ่ม: ถ้ามีการ Login/Logout ให้ดึงข้อมูลใหม่ทันที
 watch(isSignedIn, () => {
   fetchTrips()
 })
@@ -83,8 +73,8 @@ defineExpose({ fetchTrips })
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <div v-for="i in 6" :key="i" class="h-96 rounded-3xl bg-muted/50 animate-pulse"></div>
+    <div v-if="loading" class="flex flex-col gap-8">
+      <div v-for="i in 3" :key="i" class="h-64 rounded-3xl bg-muted/50 animate-pulse"></div>
     </div>
 
     <!-- Error State -->
@@ -93,47 +83,50 @@ defineExpose({ fetchTrips })
     </div>
 
     <!-- Data State -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6"> <!-- EDIT: ปรับเป็น Grid 2 คอลัมน์ -->
       <div v-for="trip in trips" :key="trip.id" 
-           class="group relative bg-card rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2 border border-border/50">
+           class="group relative bg-card rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 border border-border/50 flex flex-col sm:flex-row h-full">
         
-        <!-- Image -->
-        <div class="relative h-64 overflow-hidden">
-          <img :src="trip.image" :alt="trip.title" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
-          
-          <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-sm font-medium border border-white/20">
-            ${{ trip.price }}
+        <!-- Image Section -->
+        <div class="sm:w-[200px] shrink-0 p-3">
+          <div class="relative h-[200px] sm:h-full rounded-2xl overflow-hidden group-hover:shadow-sm transition-all">
+            <img :src="trip.photos[0]" :alt="trip.title" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
           </div>
         </div>
 
         <!-- Content -->
-        <div class="p-6 space-y-4">
-          <div class="flex justify-between items-start">
-            <div>
-              <a :href="trip.url" target="_blank" class="block">
-                <h3 class="text-xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-1">{{ trip.title }}</h3>
-              </a>
-              <div class="flex items-center gap-1 text-muted-foreground text-sm mt-1">
-                <MapPin class="w-4 h-4" />
+        <div class="flex-1 p-4 flex flex-col justify-between min-w-0">
+          <div>
+            <a :href="trip.url" target="_blank" class="block mb-2">
+              <h3 class="text-xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-2">{{ trip.title }}</h3>
+            </a>
+            
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground text-xs mb-3">
+              <div class="flex items-center gap-1">
+                <MapPin class="w-3 h-3" />
                 <span>{{ trip.location }}</span>
               </div>
+              <div class="flex items-center gap-1">
+                <Clock class="w-3 h-3" />
+                <span>{{ trip.duration }}</span>
+              </div>
             </div>
-            <div class="flex items-center gap-1 bg-yellow-400/10 px-2 py-1 rounded-lg text-yellow-600 font-bold text-sm">
-              <Star class="w-4 h-4 fill-current" />
-              <span>{{ trip.rating }}</span>
-            </div>
+
+            <p class="text-muted-foreground text-sm line-clamp-2 mb-3">{{ trip.description }}</p>
           </div>
 
-          <p class="text-muted-foreground text-sm line-clamp-2">{{ trip.description }}</p>
-
-          <div class="pt-4 border-t border-border flex items-center justify-between">
-            <div class="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock class="w-4 h-4" />
-              <span>{{ trip.duration }}</span>
+          <!-- Footer with Small Photos -->
+          <div class="flex items-center justify-between pt-3 mt-auto border-t border-border/50">
+            <div class="flex gap-2">
+               <!-- แสดงรูปเล็ก 3 รูป (รูปที่ 2-4) -->
+               <div v-for="(photo, idx) in trip.photos.slice(1, 4)" :key="idx" 
+                    class="w-10 h-10 rounded-lg overflow-hidden border border-border/50 shrink-0">
+                 <img :src="photo" :alt="trip.title" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+               </div>
             </div>
-            <a :href="trip.url" target="_blank" class="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors">
-              Book Now
+            
+            <a :href="trip.url" target="_blank" class="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
+              View more
             </a>
           </div>
         </div>
