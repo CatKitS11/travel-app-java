@@ -91,6 +91,17 @@ const handleImageError = (e: Event) => {
       <div v-for="i in 3" :key="i" class="h-64 rounded-3xl bg-muted/50 animate-pulse"></div>
     </div>
 
+    <!-- No trips found -->
+    <div v-else-if="!loading && trips.length === 0" class="flex flex-col items-center justify-center py-20 text-center space-y-4">
+      <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-2">
+        <MapPin class="w-8 h-8 text-muted-foreground opacity-50" />
+      </div>
+      <h3 class="text-xl font-semibold text-foreground">No trips have been added yet</h3>
+      <p class="text-muted-foreground max-w-sm">
+        Be the first to share your favorite spot!
+      </p>
+    </div>
+
     <!-- Error State -->
     <div v-else-if="error" class="text-center py-12 text-destructive">
       {{ error }}

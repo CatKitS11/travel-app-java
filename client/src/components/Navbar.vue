@@ -20,14 +20,14 @@ const handleSignUp = () => {
   <nav class="sticky top-0 z-50 w-full border-b border-white/10 bg-white/5 backdrop-blur-md transition-all duration-300">
     <div class="container mx-auto px-6 h-20 flex items-center justify-between">
       <!-- Logo -->
-      <div class="flex items-center gap-3 group cursor-pointer">
+      <router-link to="/" class="flex items-center gap-3 group cursor-pointer">
         <div class="p-2 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
           <Plane class="w-6 h-6 text-primary transform group-hover:-rotate-45 transition-transform duration-500" />
         </div>
         <span class="text-xl font-bold bg-gradient-to-r from-blue-500 to-yellow-400 bg-clip-text text-transparent">
           เที่ยวไหนดี
         </span>
-      </div>
+      </router-link>
 
       <!-- Desktop Menu -->
       <div class="hidden md:flex items-center gap-8">
