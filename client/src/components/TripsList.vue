@@ -158,10 +158,12 @@ const handleImageError = (e: Event) => {
                 </div>
               </div>
 
-              <a :href="trip.url" target="_blank"
-                class="shrink-0 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
-                View more
-              </a>
+              <router-link 
+                :to="`/trips/${trip.id}`" 
+                class="shrink-0 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm"
+              >
+                View Detail
+              </router-link>
             </div>
           </div>
         </div>
