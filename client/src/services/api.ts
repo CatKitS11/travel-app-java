@@ -47,4 +47,25 @@ export const tripsApi = {
   
   getById: async (id: string, token?: string | null) => 
     apiRequest(`/api/trips/${id}`, {}, token),
+
+  // เพิ่ม CRUD functions
+  getMyTrips: async (token: string) => 
+    apiRequest('/api/trips/mine', {}, token),
+
+  create: async (data: any, token: string) => 
+    apiRequest('/api/trips', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }, token),
+
+  update: async (id: number | string, data: any, token: string) => 
+    apiRequest(`/api/trips/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }, token),
+
+  delete: async (id: number | string, token: string) => 
+    apiRequest(`/api/trips/${id}`, {
+      method: 'DELETE'
+    }, token),
 }
