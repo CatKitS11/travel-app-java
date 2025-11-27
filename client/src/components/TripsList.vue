@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { MapPin, Map as MapIcon, ImageOff, ChevronLeft, ChevronRight } from 'lucide-vue-next' // เพิ่ม icon
+import { MapPin, Map as ChevronLeft, ChevronRight } from 'lucide-vue-next' // เพิ่ม icon
 import { tripsApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
 
