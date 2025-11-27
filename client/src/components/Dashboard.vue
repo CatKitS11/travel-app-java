@@ -2,7 +2,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { tripsApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
-import { Plus, Edit, Trash2, MapPin, X, Loader2, LayoutDashboard } from 'lucide-vue-next'
+import { Plus, Edit, Trash2, MapPin, Loader2, LayoutDashboard } from 'lucide-vue-next'
+import TripFormModal from './TripFormModal.vue' // Import Component ใหม่
 
 const { getToken } = useAuth()
 
@@ -17,23 +18,8 @@ interface Trip {
 
 const trips = ref<Trip[]>([])
 const loading = ref(true)
-const error = ref('')
 const isModalOpen = ref(false)
-const isSubmitting = ref(false)
-const isEditing = ref(false)
-
-// Form Data
-const formData = ref({
-  id: null as number | null,
-  title: '',
-  description: '',
-  photos: [] as string[],
-  tags: [] as string[],
-  latitude: 13.7563,
-  longitude: 100.5018,
-  tempPhoto: '',
-  tempTag: ''
-})
+const editTripId = ref<number | null>(null) // เก็บ ID ที่จะ Edit
 
 const fetchMyTrips = async () => {
   loading.value = true
@@ -44,86 +30,25 @@ const fetchMyTrips = async () => {
     trips.value = response
   } catch (err) {
     console.error(err)
-    error.value = 'Failed to load your trips'
   } finally {
     loading.value = false
   }
 }
 
+// Open Modal for Create
 const openCreateModal = () => {
-  isEditing.value = false
-  formData.value = {
-    id: null,
-    title: '',
-    description: '',
-    photos: [],
-    tags: [],
-    latitude: 13.7563,
-    longitude: 100.5018,
-    tempPhoto: '',
-    tempTag: ''
-  }
+  editTripId.value = null
   isModalOpen.value = true
 }
 
-const openEditModal = async (tripId: number) => {
-  isEditing.value = true
-  isSubmitting.value = true // Show loading while fetching details
-  try {
-    const token = await getToken.value()
-    if(!token) return
-    
-    // Fetch full details
-    const trip = await tripsApi.getById(String(tripId), token)
-    
-    formData.value = {
-      id: trip.id,
-      title: trip.title,
-      description: trip.description,
-      photos: trip.photos || [],
-      tags: trip.tags || [],
-      latitude: trip.latitude || 13.7563,
-      longitude: trip.longitude || 100.5018,
-      tempPhoto: '',
-      tempTag: ''
-    }
-    isModalOpen.value = true
-  } catch (err) {
-    alert('Failed to fetch trip details')
-  } finally {
-    isSubmitting.value = false
-  }
+// Open Modal for Edit
+const openEditModal = (id: number) => {
+  editTripId.value = id
+  isModalOpen.value = true
 }
 
-const handleSubmit = async () => {
-  isSubmitting.value = true
-  try {
-    const token = await getToken.value()
-    if (!token) return
-
-    const payload = {
-      title: formData.value.title,
-      description: formData.value.description,
-      photos: formData.value.photos,
-      tags: formData.value.tags,
-      latitude: Number(formData.value.latitude),
-      longitude: Number(formData.value.longitude)
-    }
-
-    if (isEditing.value && formData.value.id) {
-      await tripsApi.update(formData.value.id, payload, token)
-    } else {
-      await tripsApi.create(payload, token)
-    }
-
-    isModalOpen.value = false
-    fetchMyTrips() // Refresh list
-  } catch (err) {
-    alert('Failed to save trip. Please check your inputs.')
-    console.error(err)
-  } finally {
-    isSubmitting.value = false
-  }
+const handleModalSuccess = () => {
+  fetchMyTrips() // Refresh list when success
 }
 
 const handleDelete = async (id: number) => {
@@ -137,23 +62,6 @@ const handleDelete = async (id: number) => {
     alert('Failed to delete trip')
   }
 }
-
-// Helpers for array inputs
-const addPhoto = () => {
-  if (formData.value.tempPhoto) {
-    formData.value.photos.push(formData.value.tempPhoto)
-    formData.value.tempPhoto = ''
-  }
-}
-const removePhoto = (idx: number) => formData.value.photos.splice(idx, 1)
-
-const addTag = () => {
-  if (formData.value.tempTag) {
-    formData.value.tags.push(formData.value.tempTag)
-    formData.value.tempTag = ''
-  }
-}
-const removeTag = (idx: number) => formData.value.tags.splice(idx, 1)
 
 onMounted(() => {
     const appContainer = document.querySelector('.overflow-y-auto')
@@ -244,83 +152,12 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Modal Form -->
-    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isModalOpen = false"></div>
-      <div class="bg-card w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
-        
-        <div class="sticky top-0 bg-card z-10 px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 class="text-xl font-bold">{{ isEditing ? 'Edit Destination' : 'Add New Destination' }}</h2>
-          <button @click="isModalOpen = false" class="p-2 hover:bg-muted rounded-full transition-colors"><X class="w-5 h-5" /></button>
-        </div>
-
-        <div class="p-6 space-y-4">
-          <!-- Title -->
-          <div>
-            <label class="block text-sm font-medium mb-1">Title</label>
-            <input v-model="formData.title" type="text" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Trip name..." />
-          </div>
-
-          <!-- Description -->
-          <div>
-            <label class="block text-sm font-medium mb-1">Description</label>
-            <textarea v-model="formData.description" rows="4" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Tell us about this place..."></textarea>
-          </div>
-
-          <!-- Photos -->
-          <div>
-            <label class="block text-sm font-medium mb-1">Photos (URLs)</label>
-            <div class="flex gap-2 mb-2">
-              <input v-model="formData.tempPhoto" type="text" class="flex-1 px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" placeholder="https://example.com/image.jpg" @keydown.enter.prevent="addPhoto" />
-              <button @click.prevent="addPhoto" class="px-4 py-2 bg-secondary rounded-xl font-medium">Add</button>
-            </div>
-            <div class="space-y-2">
-              <div v-for="(photo, idx) in formData.photos" :key="idx" class="flex items-center gap-2 bg-muted/30 p-2 rounded-lg group">
-                <img :src="photo" class="w-10 h-10 rounded object-cover bg-muted" />
-                <span class="text-xs truncate flex-1">{{ photo }}</span>
-                <button @click="removePhoto(idx)" class="text-destructive hover:bg-destructive/10 p-1 rounded"><X class="w-4 h-4" /></button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tags -->
-          <div>
-            <label class="block text-sm font-medium mb-1">Tags (Include province here)</label>
-            <div class="flex gap-2 mb-2">
-              <input v-model="formData.tempTag" type="text" class="flex-1 px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" placeholder="e.g. Bangkok, Mountain" @keydown.enter.prevent="addTag" />
-              <button @click.prevent="addTag" class="px-4 py-2 bg-secondary rounded-xl font-medium">Add</button>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <span v-for="(tag, idx) in formData.tags" :key="idx" class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-1">
-                #{{ tag }}
-                <button @click="removeTag(idx)" class="hover:text-destructive"><X class="w-3 h-3" /></button>
-              </span>
-            </div>
-          </div>
-
-          <!-- Coordinates -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium mb-1">Latitude</label>
-              <input v-model="formData.latitude" type="number" step="any" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">Longitude</label>
-              <input v-model="formData.longitude" type="number" step="any" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" />
-            </div>
-          </div>
-
-        </div>
-
-        <div class="sticky bottom-0 bg-card px-6 py-4 border-t border-border flex justify-end gap-3">
-          <button @click="isModalOpen = false" class="px-6 py-2 rounded-xl hover:bg-muted transition-colors font-medium">Cancel</button>
-          <button @click="handleSubmit" :disabled="isSubmitting" class="px-6 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-all flex items-center gap-2">
-            <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
-            {{ isEditing ? 'Save Changes' : 'Create Trip' }}
-          </button>
-        </div>
-
-      </div>
-    </div>
+    <!-- Modal Component -->
+    <TripFormModal 
+      :is-open="isModalOpen"
+      :edit-id="editTripId"
+      @close="isModalOpen = false"
+      @success="handleModalSuccess"
+    />
   </div>
 </template>

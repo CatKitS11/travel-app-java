@@ -1,0 +1,220 @@
+<script setup lang="ts">
+import { ref, watch, computed } from 'vue'
+import { tripsApi } from '../services/api'
+import { useAuth } from '@clerk/vue'
+import { X, Loader2 } from 'lucide-vue-next'
+
+const props = defineProps<{
+  isOpen: boolean
+  editId: number | null // ถ้าเป็น null คือ Create, ถ้ามีค่าคือ Edit
+}>()
+
+const emit = defineEmits(['close', 'success'])
+const { getToken } = useAuth()
+
+const isSubmitting = ref(false)
+const isLoading = ref(false) // สำหรับตอน fetch data มา edit
+
+// Form Data
+const formData = ref({
+  title: '',
+  description: '',
+  photos: [] as string[],
+  tags: [] as string[],
+  latitude: 13.7563,
+  longitude: 100.5018,
+  tempPhoto: '',
+  tempTag: ''
+})
+
+const isEditing = computed(() => !!props.editId)
+
+// Reset Form
+const resetForm = () => {
+  formData.value = {
+    title: '',
+    description: '',
+    photos: [],
+    tags: [],
+    latitude: 13.7563,
+    longitude: 100.5018,
+    tempPhoto: '',
+    tempTag: ''
+  }
+}
+
+// Watch เมื่อเปิด Modal หรือเปลี่ยน editId
+watch(() => props.isOpen, async (newVal) => {
+  if (newVal) {
+    if (props.editId) {
+      // Edit Mode: Fetch Data
+      await fetchTripDetails(props.editId)
+    } else {
+      // Create Mode: Reset Form
+      resetForm()
+    }
+  }
+})
+
+const fetchTripDetails = async (id: number) => {
+  isLoading.value = true
+  try {
+    const token = await getToken.value()
+    if (!token) return
+    const trip = await tripsApi.getById(String(id), token)
+    
+    formData.value = {
+      title: trip.title,
+      description: trip.description,
+      photos: trip.photos || [],
+      tags: trip.tags || [],
+      latitude: trip.latitude || 13.7563,
+      longitude: trip.longitude || 100.5018,
+      tempPhoto: '',
+      tempTag: ''
+    }
+  } catch (err) {
+    alert('Failed to fetch trip details')
+    emit('close')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleSubmit = async () => {
+  isSubmitting.value = true
+  try {
+    const token = await getToken.value()
+    if (!token) return
+
+    const payload = {
+      title: formData.value.title,
+      description: formData.value.description,
+      photos: formData.value.photos,
+      tags: formData.value.tags,
+      latitude: Number(formData.value.latitude),
+      longitude: Number(formData.value.longitude)
+    }
+
+    if (isEditing.value && props.editId) {
+      await tripsApi.update(props.editId, payload, token)
+    } else {
+      await tripsApi.create(payload, token)
+    }
+
+    emit('success') // แจ้ง Parent ว่าทำรายการสำเร็จ
+    emit('close')
+  } catch (err) {
+    alert('Failed to save trip. Please check your inputs.')
+    console.error(err)
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// Helpers for array inputs
+const addPhoto = () => {
+  if (formData.value.tempPhoto) {
+    formData.value.photos.push(formData.value.tempPhoto)
+    formData.value.tempPhoto = ''
+  }
+}
+const removePhoto = (idx: number) => formData.value.photos.splice(idx, 1)
+
+const addTag = () => {
+  if (formData.value.tempTag) {
+    formData.value.tags.push(formData.value.tempTag)
+    formData.value.tempTag = ''
+  }
+}
+const removeTag = (idx: number) => formData.value.tags.splice(idx, 1)
+</script>
+
+<template>
+  <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="$emit('close')"></div>
+    <div class="bg-card w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Header -->
+      <div class="sticky top-0 bg-card z-10 px-6 py-4 border-b border-border flex items-center justify-between">
+        <h2 class="text-xl font-bold">{{ isEditing ? 'Edit Destination' : 'Add New Destination' }}</h2>
+        <button @click="$emit('close')" class="p-2 hover:bg-muted rounded-full transition-colors"><X class="w-5 h-5" /></button>
+      </div>
+
+      <!-- Loading State (Edit Mode) -->
+      <div v-if="isLoading" class="p-20 text-center">
+        <Loader2 class="w-10 h-10 animate-spin mx-auto text-primary mb-2" />
+        <p class="text-muted-foreground">Loading details...</p>
+      </div>
+
+      <!-- Form Content -->
+      <div v-else class="p-6 space-y-4">
+        <!-- Title -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Title</label>
+          <input v-model="formData.title" type="text" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Trip name..." />
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Description</label>
+          <textarea v-model="formData.description" rows="4" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Tell us about this place..."></textarea>
+        </div>
+
+        <!-- Photos -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Photos (URLs)</label>
+          <div class="flex gap-2 mb-2">
+            <input v-model="formData.tempPhoto" type="text" class="flex-1 px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" placeholder="https://example.com/image.jpg" @keydown.enter.prevent="addPhoto" />
+            <button @click.prevent="addPhoto" class="px-4 py-2 bg-secondary rounded-xl font-medium">Add</button>
+          </div>
+          <div class="space-y-2">
+            <div v-for="(photo, idx) in formData.photos" :key="idx" class="flex items-center gap-2 bg-muted/30 p-2 rounded-lg group">
+              <img :src="photo" class="w-10 h-10 rounded object-cover bg-muted" />
+              <span class="text-xs truncate flex-1">{{ photo }}</span>
+              <button @click="removePhoto(idx)" class="text-destructive hover:bg-destructive/10 p-1 rounded"><X class="w-4 h-4" /></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Tags (Include province here)</label>
+          <div class="flex gap-2 mb-2">
+            <input v-model="formData.tempTag" type="text" class="flex-1 px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" placeholder="e.g. Bangkok, Mountain" @keydown.enter.prevent="addTag" />
+            <button @click.prevent="addTag" class="px-4 py-2 bg-secondary rounded-xl font-medium">Add</button>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span v-for="(tag, idx) in formData.tags" :key="idx" class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-1">
+              #{{ tag }}
+              <button @click="removeTag(idx)" class="hover:text-destructive"><X class="w-3 h-3" /></button>
+            </span>
+          </div>
+        </div>
+
+        <!-- Coordinates -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Latitude</label>
+            <input v-model="formData.latitude" type="number" step="any" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Longitude</label>
+            <input v-model="formData.longitude" type="number" step="any" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" />
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div v-if="!isLoading" class="sticky bottom-0 bg-card px-6 py-4 border-t border-border flex justify-end gap-3">
+        <button @click="$emit('close')" class="px-6 py-2 rounded-xl hover:bg-muted transition-colors font-medium">Cancel</button>
+        <button @click="handleSubmit" :disabled="isSubmitting" class="px-6 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-all flex items-center gap-2">
+          <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
+          {{ isEditing ? 'Save Changes' : 'Create Trip' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</template>
