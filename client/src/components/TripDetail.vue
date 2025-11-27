@@ -1,52 +1,64 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router' // เราจะใช้ route เพื่อดึง id
+import { useRoute } from 'vue-router'
+import { tripsApi } from '../services/api'
+import { useAuth } from '@clerk/vue'
+// EDIT: เพิ่ม import icons
+import { MapPin, ExternalLink, MapPinOff } from 'lucide-vue-next'
 
 const route = useRoute()
-const tripId = ref(route.params.id)
+const { getToken } = useAuth()
+const tripId = ref(route.params.id as string)
 
-// Mock data for now
-const trip = ref<any>(null)
-const loading = ref(true)
-
-onMounted(async () => {
-    // 1. หาตัว container
-    const appContainer = document.querySelector('.overflow-y-auto') // หาตัวที่มี scroll bar จริงๆ (อาจจะเป็นตัวเดียวกับ snap-y)
-    
-    if (appContainer) {
-        // 2. บังคับเลื่อนไปบนสุดทันที (ปิด smooth scroll ชั่วคราวเพื่อให้มันวาร์ปไปเลย)
-        (appContainer as HTMLElement).style.scrollBehavior = 'auto' 
-        
-        // 3. ลบ snap classes ออก
-        appContainer.classList.remove('snap-y', 'snap-mandatory')
-        appContainer.scrollTop = 0 
-        
-        // คืนค่า scroll behavior (ถ้าต้องการ) หรือปล่อยไว้
-        // appContainer.style.scrollBehavior = ''
+// Interface ให้ตรงกับ TripsResponse จาก Backend
+interface TripDetail {
+    id: number
+    title: string
+    description: string
+    photos: string[]
+    tags: string[]
+    latitude?: number
+    longitude?: number
+    author?: {
+        displayName: string
     }
+}
 
-    // 4. เริ่มโหลดข้อมูล
+const trip = ref<TripDetail | null>(null)
+const loading = ref(true)
+const error = ref('')
+
+const fetchTripDetail = async () => {
+    loading.value = true
+    error.value = ''
     try {
-        // Simulate API call or fetch real data
-        setTimeout(() => {
-            trip.value = {
-                id: tripId.value,
-                title: 'ตัวอย่างทริปท่องเที่ยว (Mock Data)',
-                description: 'รายละเอียดทริปที่ดึงมาจาก ID ' + tripId.value,
-                coverImage: 'https://img.wongnai.com/p/1600x0/2020/02/18/458b9a31b62b408d91137fbe152f7450.jpg',
-                location: 'กรุงเทพมหานคร'
-            }
-            loading.value = false
-        }, 1000)
-    } catch (error) {
-        console.error('Error fetching trip:', error)
+        const token = await getToken.value()
+        // เรียก API getById
+        const response = await tripsApi.getById(tripId.value, token)
+        trip.value = response
+    } catch (err) {
+        console.error('Error fetching trip:', err)
+        error.value = 'Failed to load trip details.'
+    } finally {
         loading.value = false
     }
+}
+
+onMounted(() => {
+    // 1. Logic เดิม: เลื่อน Scroll ไปบนสุด
+    const appContainer = document.querySelector('.overflow-y-auto')
+    if (appContainer) {
+        (appContainer as HTMLElement).style.scrollBehavior = 'auto'
+        appContainer.classList.remove('snap-y', 'snap-mandatory')
+        appContainer.scrollTop = 0
+    }
+
+    // 2. เรียกข้อมูลจริง
+    fetchTripDetail()
 })
 
 onUnmounted(() => {
-    // คืนค่าเดิมเมื่อออกจากหน้า Detail
-    const appContainer = document.querySelector('.h-screen.overflow-y-auto') // selector คร่าวๆ
+    const appContainer = document.querySelector('.h-screen.overflow-y-auto')
     if (appContainer) {
         appContainer.classList.add('snap-y', 'snap-mandatory')
     }
@@ -54,22 +66,160 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="w-full max-w-5xl mx-auto px-4 py-5">
-        <div v-if="loading" class="text-center py-20">Loading trip details...</div>
-
-        <div v-else-if="trip" class="space-y-6">
-            <router-link to="/" class="text-primary hover:underline mb-4 inline-block">&larr; Back to Home</router-link>
-
-            <div class="h-[400px] rounded-3xl overflow-hidden">
-                <img :src="trip.coverImage" class="w-full h-full object-cover" />
-            </div>
-
-            <h1 class="text-4xl font-bold">{{ trip.title }}</h1>
-            <p class="text-xl text-muted-foreground">{{ trip.location }}</p>
-            <p class="text-lg leading-relaxed">{{ trip.description }}</p>
+    <div class="w-full max-w-7xl mx-auto px-4 py-8 pb-20">
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-20 flex flex-col items-center">
+             <div class="animate-pulse flex flex-col items-center space-y-4 w-full">
+                <div class="h-8 bg-muted rounded w-1/3"></div>
+                <div class="h-[400px] bg-muted rounded-3xl w-full"></div>
+                <div class="h-4 bg-muted rounded w-2/3"></div>
+             </div>
         </div>
 
-        <div v-else class="text-center py-20 text-destructive">
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center py-20 text-destructive">
+            <p class="text-xl font-bold mb-2">Something went wrong</p>
+            <p>{{ error }}</p>
+            <button @click="fetchTripDetail" class="mt-4 text-primary hover:underline">Try Again</button>
+        </div>
+
+        <!-- Content State -->
+        <div v-else-if="trip" class="space-y-8">
+            <router-link to="/" class="text-primary hover:underline mb-4 inline-flex items-center gap-1">
+                &larr; Back to Home
+            </router-link>
+
+            <!-- Layout Grid: 2 Columns on Large Screens -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column (Images) - Span 2 cols -->
+                <div class="lg:col-span-2 space-y-4">
+                    <!-- Main Image -->
+                    <div class="h-[300px] sm:h-[400px] lg:h-[500px] rounded-3xl overflow-hidden bg-muted relative shadow-sm border border-border/50">
+                        <img 
+                            v-if="trip.photos && trip.photos.length > 0" 
+                            :src="trip.photos[0]" 
+                            :alt="trip.title"
+                            class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
+                        />
+                        <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground flex-col gap-2">
+                             <div class="w-12 h-12 rounded-full bg-muted-foreground/20 flex items-center justify-center">
+                                <span class="text-2xl">📷</span>
+                             </div>
+                            <span>No Image Available</span>
+                        </div>
+                    </div>
+
+                    <!-- Image Gallery (Thumbnails) -->
+                    <div v-if="trip.photos && trip.photos.length > 1" class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                        <div v-for="(photo, index) in trip.photos.slice(1, 5)" :key="index" 
+                             class="aspect-square rounded-xl overflow-hidden bg-muted cursor-pointer border border-border/50 hover:ring-2 ring-primary/50 transition-all">
+                             <img :src="photo" :alt="trip.title + ' ' + (index + 2)" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+                        </div>
+                        <div v-if="trip.photos.length > 5" class="aspect-square rounded-xl bg-muted flex items-center justify-center text-muted-foreground border border-border/50 font-medium">
+                            +{{ trip.photos.length - 5 }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Info) - Span 1 col -->
+                <div class="space-y-6">
+                    <div>
+                        <h1 class="text-3xl sm:text-4xl font-bold mb-3 leading-tight text-foreground">{{ trip.title }}</h1>
+                        
+                        <!-- Tags -->
+                        <div class="flex flex-wrap gap-2 mb-4">
+                             <span v-for="tag in trip.tags" :key="tag" 
+                                class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                                #{{ tag }}
+                            </span>
+                        </div>
+
+                        <!-- Location Placeholder -->
+                        <div class="flex items-center text-muted-foreground gap-2 mb-2">
+                             <MapPin class="w-5 h-5 shrink-0" /> <!-- EDIT: ใช้ icon MapPin -->
+                             <span class="text-lg">📍 {{ trip.tags[0] || 'Unknown Location' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-border"></div>
+
+                    <!-- Description -->
+                    <div class="prose prose-slate dark:prose-invert max-w-none">
+                        <h3 class="text-xl font-semibold mb-3">About this place</h3>
+                        <p class="text-base leading-relaxed text-muted-foreground whitespace-pre-line">
+                            {{ trip.description }}
+                        </p>
+                    </div>
+
+                    <!-- Author Info -->
+                    <div v-if="trip.author" class="bg-muted/30 p-4 rounded-xl flex items-center gap-3 border border-border/50">
+                        <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+                            {{ trip.author.displayName?.[0]?.toUpperCase() || 'U' }}
+                        </div>
+                        <div>
+                            <p class="text-sm text-muted-foreground">Posted by</p>
+                            <p class="font-medium">{{ trip.author.displayName || 'Anonymous' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- CTA to Map Section -->
+                    <div class="pt-4" v-if="trip.latitude && trip.longitude">
+                        <a href="#map-section" class="w-full block text-center bg-secondary hover:bg-secondary/80 text-secondary-foreground py-3 rounded-xl font-medium transition-colors">
+                            Scroll to Map
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div id="map-section" class="mt-12 pt-8 border-t border-border">
+                 <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                    Location
+                 </h2>
+                 
+                 <!-- Case 1: Have Coordinates -->
+                 <div v-if="trip.latitude && trip.longitude" class="space-y-4">
+                     <!-- Map Embed Iframe -->
+                     <div class="bg-muted h-[450px] rounded-3xl overflow-hidden border border-border/50 shadow-sm relative">
+                        <iframe 
+                            width="100%" 
+                            height="100%" 
+                            frameborder="0" 
+                            scrolling="no" 
+                            marginheight="0" 
+                            marginwidth="0" 
+                            :src="`https://maps.google.com/maps?q=${trip.latitude},${trip.longitude}&z=15&output=embed`"
+                            title="Google Map"
+                            class="w-full h-full"
+                        ></iframe>
+                     </div>
+                     
+                     <!-- External Link Button -->
+                     <div class="flex justify-end">
+                        <a 
+                            :href="`https://www.google.com/maps/search/?api=1&query=${trip.latitude},${trip.longitude}`" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted text-primary transition-colors font-medium"
+                        >
+                            <span>View on Google Maps</span>
+                            <ExternalLink class="w-4 h-4" />
+                        </a>
+                     </div>
+                 </div>
+
+                 <!-- Case 2: Missing Coordinates -->
+                 <div v-else class="bg-muted/30 h-[200px] rounded-3xl flex flex-col items-center justify-center text-muted-foreground border border-border/50">
+                    <MapPinOff class="w-10 h-10 mb-3 opacity-50" />
+                    <p class="font-medium">Map information not available for this destination.</p>
+                 </div>
+            </div>
+
+        </div>
+
+        <!-- Not Found State -->
+        <div v-else class="text-center py-20 text-muted-foreground">
             Trip not found
         </div>
     </div>
