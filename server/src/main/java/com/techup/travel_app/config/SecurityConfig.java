@@ -15,6 +15,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -38,9 +39,11 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
 
                         // Protected endpoints (ต้อง login)
-                        .requestMatchers("/api/trips/create").authenticated()
-                        .requestMatchers("/api/trips/{id}/update").authenticated()
-                        .requestMatchers("/api/trips/{id}/delete").authenticated()
+                        .requestMatchers("/api/trips/mine").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/trips").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/trips/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/trips/**").authenticated()
+
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -10,6 +10,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.techup.travel_app.dto.TripsRequest;
+import com.techup.travel_app.entity.User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import java.util.List;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpMethod;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -41,5 +47,33 @@ public class TripsController {
     public ResponseEntity<TripsResponse> getTripById(@PathVariable Long id) {
         TripsResponse response = tripsService.getTripById(id);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/mine")
+    public ResponseEntity<List<TripsListItemResponse>> getMyTrips(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(tripsService.getMyTrips(user));
+    }
+    
+    @PostMapping
+    public ResponseEntity<TripsResponse> createTrip(
+            @Valid @RequestBody TripsRequest request,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(tripsService.createTrip(request, user));
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<TripsResponse> updateTrip(
+            @PathVariable Long id,
+            @Valid @RequestBody TripsRequest request,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(tripsService.updateTrip(id, request, user));
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTrip(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        tripsService.deleteTrip(id, user);
+        return ResponseEntity.noContent().build();
     }
 }

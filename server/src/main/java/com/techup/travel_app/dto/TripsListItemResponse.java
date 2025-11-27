@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.OffsetDateTime; // EDIT: เพิ่ม import
 
 @Data
 @NoArgsConstructor
@@ -19,4 +20,5 @@ public class TripsListItemResponse {
     private String[] tags; // ดึงจาก tags หรือ null
     private double latitude; // ดึงจาก latitude หรือ null
     private double longitude; // ดึงจาก longitude หรือ null
+    private OffsetDateTime updatedAt; // EDIT: เพิ่ม field นี้เพื่อให้ builder ทำงานได้
 }

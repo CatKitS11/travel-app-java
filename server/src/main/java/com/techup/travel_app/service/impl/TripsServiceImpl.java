@@ -18,6 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.techup.travel_app.dto.TripsRequest;
+import com.techup.travel_app.entity.User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.HttpMethod;
 
 @Service
 @RequiredArgsConstructor
@@ -88,6 +92,70 @@ public class TripsServiceImpl implements TripsService {
         return mapToResponse(trip);
     }
     
+    @Override
+    public List<TripsListItemResponse> getMyTrips(@AuthenticationPrincipal User user) {
+        List<Trips> trips = tripsRepository.findAllByAuthorOrderByUpdatedAtDesc(user);
+        return trips.stream()
+                .map(this::mapToListItemResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    // EDIT: สลับตำแหน่ง parameter ให้ตรงกับ Interface และลบ @AuthenticationPrincipal
+    public TripsResponse createTrip(TripsRequest request, User user) {
+        Trips trip = Trips.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .photos(request.getPhotos() != null ? request.getPhotos() : new String[0])
+                .tags(request.getTags() != null ? request.getTags() : new String[0])
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .author(user)
+                .build();
+        
+        Trips savedTrip = tripsRepository.save(trip);
+        return mapToResponse(savedTrip);
+    }
+
+    @Override
+    @Transactional
+    // EDIT: สลับตำแหน่ง parameter ให้ตรงกับ Interface และลบ @AuthenticationPrincipal
+    public TripsResponse updateTrip(Long id, TripsRequest request, User user) {
+        Trips trip = tripsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trip", id));
+        
+        // Check Ownership
+        if (!trip.getAuthor().getId().equals(user.getId())) {
+             throw new RuntimeException("You are not authorized to update this trip");
+        }
+        
+        trip.setTitle(request.getTitle());
+        trip.setDescription(request.getDescription());
+        trip.setPhotos(request.getPhotos() != null ? request.getPhotos() : new String[0]);
+        trip.setTags(request.getTags() != null ? request.getTags() : new String[0]);
+        trip.setLatitude(request.getLatitude());
+        trip.setLongitude(request.getLongitude());
+        
+        Trips updatedTrip = tripsRepository.save(trip);
+        return mapToResponse(updatedTrip);
+    }
+
+    @Override
+    @Transactional
+    // EDIT: สลับตำแหน่ง parameter ให้ตรงกับ Interface และลบ @AuthenticationPrincipal
+    public void deleteTrip(Long id, User user) {
+        Trips trip = tripsRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trip", id));
+        
+        // Check Ownership
+        if (!trip.getAuthor().getId().equals(user.getId())) {
+             throw new RuntimeException("You are not authorized to delete this trip");
+        }
+        
+        tripsRepository.delete(trip);
+    }
+
     private TripsListItemResponse mapToListItemResponse(Trips trip) {
         // ดึง cover image (รูปแรก)
         String coverImage = (trip.getPhotos() != null && trip.getPhotos().length > 0) 
@@ -113,6 +181,7 @@ public class TripsServiceImpl implements TripsService {
             .tags(trip.getTags())
             .latitude(trip.getLatitude())
             .longitude(trip.getLongitude())
+            .updatedAt(trip.getUpdatedAt())
             // .authorId(trip.getAuthor() != null ? trip.getAuthor().getId() : null)
             // .createdAt(trip.getCreatedAt())
             // .updatedAt(trip.getUpdatedAt())
