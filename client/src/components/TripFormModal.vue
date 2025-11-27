@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import { tripsApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
-import { X, Loader2 } from 'lucide-vue-next'
+import { X, Loader2, MapPin, ExternalLink } from 'lucide-vue-next' // เพิ่ม icon
 
 const props = defineProps<{
   isOpen: boolean
@@ -24,7 +24,9 @@ const formData = ref({
   latitude: 13.7563,
   longitude: 100.5018,
   tempPhoto: '',
-  tempTag: ''
+  tempTag: '',
+  // เพิ่ม field สำหรับ input แบบรวม
+  coordinateInput: ''
 })
 
 const isEditing = computed(() => !!props.editId)
@@ -39,7 +41,8 @@ const resetForm = () => {
     latitude: 13.7563,
     longitude: 100.5018,
     tempPhoto: '',
-    tempTag: ''
+    tempTag: '',
+    coordinateInput: ''
   }
 }
 
@@ -71,7 +74,8 @@ const fetchTripDetails = async (id: number) => {
       latitude: trip.latitude || 13.7563,
       longitude: trip.longitude || 100.5018,
       tempPhoto: '',
-      tempTag: ''
+      tempTag: '',
+      coordinateInput: `${trip.latitude}, ${trip.longitude}` // Set input string
     }
   } catch (err) {
     alert('Failed to fetch trip details')
@@ -79,6 +83,29 @@ const fetchTripDetails = async (id: number) => {
   } finally {
     isLoading.value = false
   }
+}
+
+// *** ฟังก์ชันจัดการพิกัดใหม่ ***
+const handleCoordinateInput = () => {
+  const input = formData.value.coordinateInput.trim()
+  
+  // ลองแยกด้วย comma (รองรับ "lat, long" หรือ "lat,long")
+  const parts = input.split(',')
+  
+  if (parts.length === 2) {
+    const lat = parseFloat(parts[0].trim())
+    const lng = parseFloat(parts[1].trim())
+    
+    if (!isNaN(lat) && !isNaN(lng)) {
+      formData.value.latitude = lat
+      formData.value.longitude = lng
+    }
+  }
+}
+
+const openGoogleMapsFinder = () => {
+  // เปิด Google Maps เพื่อให้ user ไปหาพิกัด
+  window.open('https://www.google.com/maps', '_blank')
 }
 
 const handleSubmit = async () => {
@@ -192,15 +219,51 @@ const removeTag = (idx: number) => formData.value.tags.splice(idx, 1)
           </div>
         </div>
 
-        <!-- Coordinates -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">Latitude</label>
-            <input v-model="formData.latitude" type="number" step="any" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Longitude</label>
-            <input v-model="formData.longitude" type="number" step="any" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" />
+        <!-- Coordinates Section (ปรับปรุงใหม่) -->
+        <div class="bg-muted/30 p-4 rounded-xl border border-border/50">
+          <label class="block text-sm font-medium mb-3 flex items-center justify-between">
+             <span class="flex items-center gap-2"><MapPin class="w-4 h-4" /> Location Coordinates</span>
+             <button @click="openGoogleMapsFinder" class="text-xs text-primary hover:underline flex items-center gap-1">
+                Open Google Maps <ExternalLink class="w-3 h-3" />
+             </button>
+          </label>
+          
+          <div class="space-y-3">
+             <!-- Input แบบรวม -->
+             <div>
+                <input 
+                    v-model="formData.coordinateInput" 
+                    @input="handleCoordinateInput"
+                    type="text" 
+                    class="w-full px-4 py-2 rounded-xl bg-white/50 border border-border outline-none text-sm font-mono" 
+                    placeholder="Paste coordinates here (e.g. 13.7563, 100.5018)" 
+                />
+                <p class="text-xs text-muted-foreground mt-1">
+                    Tip: Right-click on Google Maps & select coordinates to copy.
+                </p>
+             </div>
+
+             <!-- Preview Map -->
+             <div class="h-40 rounded-lg overflow-hidden border border-border relative bg-muted">
+                 <iframe 
+                    v-if="formData.latitude && formData.longitude"
+                    width="100%" 
+                    height="100%" 
+                    frameborder="0" 
+                    scrolling="no" 
+                    :src="`https://maps.google.com/maps?q=${formData.latitude},${formData.longitude}&z=15&output=embed`"
+                    class="w-full h-full opacity-80 hover:opacity-100 transition-opacity"
+                ></iframe>
+                <div v-else class="flex items-center justify-center h-full text-muted-foreground text-sm">
+                    Enter valid coordinates to see preview
+                </div>
+             </div>
+
+             <!-- Hidden/Readonly Inputs (เผื่อ Debug) -->
+             <div class="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                <div>Lat: {{ formData.latitude }}</div>
+                <div>Lng: {{ formData.longitude }}</div>
+             </div>
           </div>
         </div>
 
