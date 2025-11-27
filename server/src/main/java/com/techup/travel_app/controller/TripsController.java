@@ -23,7 +23,7 @@ public class TripsController {
     public ResponseEntity<PageResponse<TripsListItemResponse>> getAllTrips(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
-            @RequestParam(defaultValue = "created_at") String sortBy, // EDIT: เปลี่ยนเป็น created_at
+            @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDir,
             @RequestParam(required = false) String keyword) {
         

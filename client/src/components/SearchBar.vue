@@ -20,6 +20,7 @@ const handleSearch = () => {
     </div>
     <input 
       v-model="query"
+      @input="handleSearch" 
       @keyup.enter="handleSearch"
       @focus="emit('focus')"
       type="text" 

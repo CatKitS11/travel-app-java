@@ -36,8 +36,9 @@ export async function apiRequest(
 export const tripsApi = {
   // แก้ให้รับ page และ limit (size) เพิ่ม
   getAll: async (keyword: string = '', token?: string | null, page: number = 0, limit: number = 4) => { 
-    // ส่ง page และ limit (size) ไปหา backend
-    const response = await apiRequest(`/api/trips?page=${page}&size=${limit}&keyword=${keyword}`, {}, token)
+    // keyword ต้องถูก encode และส่งไป
+    const encodedKeyword = encodeURIComponent(keyword);
+    const response = await apiRequest(`/api/trips?page=${page}&size=${limit}&keyword=${encodedKeyword}`, {}, token)
     
     // คืนค่า response ทั้งก้อน (เพื่อให้ได้ totalPages) ไม่ใช่แค่ content
     // ถ้า Backend return { content: [...], totalPages: 5 }

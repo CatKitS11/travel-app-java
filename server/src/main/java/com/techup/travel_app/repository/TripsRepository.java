@@ -14,9 +14,13 @@ public interface TripsRepository extends JpaRepository<Trips, Long> {
     // แต่เบื้องต้นเอา Title กับ Description ก่อนก็ได้ครับตาม Requirement
     
     @Query(value = "SELECT * FROM trips t WHERE " +
-           "t.title ILIKE %:keyword% OR " +
-           "t.description ILIKE %:keyword% OR " +
-           ":keyword ILIKE ANY(t.tags)", 
+           "t.title ILIKE CONCAT('%', :keyword, '%') OR " +
+           "t.description ILIKE CONCAT('%', :keyword, '%') OR " +
+           "array_to_string(t.tags, ',') ILIKE CONCAT('%', :keyword, '%')",
+           countQuery = "SELECT count(*) FROM trips t WHERE " +
+           "t.title ILIKE CONCAT('%', :keyword, '%') OR " +
+           "t.description ILIKE CONCAT('%', :keyword, '%') OR " +
+           "array_to_string(t.tags, ',') ILIKE CONCAT('%', :keyword, '%')",
            nativeQuery = true)
     Page<Trips> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
 

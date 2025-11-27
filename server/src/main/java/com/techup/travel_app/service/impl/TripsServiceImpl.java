@@ -10,6 +10,8 @@ import com.techup.travel_app.service.TripsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,10 +32,36 @@ public class TripsServiceImpl implements TripsService {
         
         // เช็คว่ามี keyword ไหม
         if (keyword != null && !keyword.trim().isEmpty()) {
-            // ถ้ามี -> เรียก findByKeyword
-            tripsPage = tripsRepository.findByKeyword(keyword, pageable);
+            
+            // --- FIX SORTING ISSUE FOR NATIVE QUERY ---
+            // สร้าง Sort ใหม่โดยแปลงชื่อ field ให้ตรงกับ DB
+            Sort newSort = Sort.unsorted();
+            for (Sort.Order order : pageable.getSort()) {
+                String property = order.getProperty();
+                // แปลงชื่อที่ frontend ส่งมา (createdAt) ให้เป็นชื่อใน DB (created_at)
+                if (property.equals("createdAt")) property = "created_at";
+                if (property.equals("updatedAt")) property = "updated_at";
+                // เพิ่มการแปลง field อื่นๆ ถ้าจำเป็น เช่น title -> title
+                
+                Sort.Order newOrder = order.isAscending() 
+                    ? Sort.Order.asc(property) 
+                    : Sort.Order.desc(property);
+                
+                newSort = newSort.isSorted() ? newSort.and(Sort.by(newOrder)) : Sort.by(newOrder);
+            }
+            
+            // สร้าง Pageable ใหม่
+            Pageable nativePageable = PageRequest.of(
+                pageable.getPageNumber(), 
+                pageable.getPageSize(), 
+                newSort
+            );
+            // -------------------------------------------
+
+            // ส่ง nativePageable แทน pageable เดิม
+            tripsPage = tripsRepository.findByKeyword(keyword, nativePageable);
         } else {
-            // ถ้าไม่มี -> เรียก findAll เหมือนเดิม
+            // ถ้าไม่มี keyword เรียก findAll (ซึ่งเป็น JPQL/Hibernate อัตโนมัติ ไม่ต้องแปลงชื่อ)
             tripsPage = tripsRepository.findAll(pageable);
         }
         

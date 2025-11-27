@@ -24,6 +24,7 @@ const error = ref('')
 // เพิ่ม state สำหรับ Pagination
 const currentPage = ref(0) // เริ่มหน้า 0 (Spring Boot ใช้ 0-based index)
 const totalPages = ref(0)
+const currentKeyword = ref('') // เพิ่ม state เก็บ keyword ปัจจุบัน
 
 // แก้ไข fetchTrips ให้รับ pageNumber
 const fetchTrips = async (keyword: string = '', page: number = 0) => {
@@ -31,34 +32,45 @@ const fetchTrips = async (keyword: string = '', page: number = 0) => {
     loading.value = true
     error.value = ''
     
-    // อัปเดตหน้าปัจจุบันที่กำลังดึง
+    // Logic การจัดการ keyword:
+    // ถ้ามีการส่ง keyword มาใหม่ (เช่น กดค้นหา) -> อัปเดต currentKeyword และ reset หน้าไปที่ 0
+    // ถ้าเป็นการเปลี่ยนหน้า (keyword อาจจะว่างจากการเรียก changePage) -> ใช้ currentKeyword เดิม
+    
+    // กรณีเรียกจาก SearchBar (keyword มีค่า) หรือ Reset (keyword='')
+    // เราจะรู้ได้ไงว่านี่คือการ "เปลี่ยนหน้า" หรือ "ค้นหาใหม่"?
+    // ปกติ changePage เราจะเรียก fetchTrips โดยไม่ส่ง keyword (หรือส่ง currentKeyword)
+    
+    // เพื่อความชัวร์:
+    // 1. ถ้า keyword !== currentKeyword.value แปลว่ามีการ Search ใหม่ -> Reset page = 0
+    // 2. ถ้า keyword === currentKeyword.value แปลว่าอาจจะเปลี่ยนหน้า หรือ refresh -> ใช้ page ที่ส่งมา
+    
+    // ถ้า keyword ไม่ส่งมา ให้ใช้ keyword ล่าสุด
+    // แต่ถ้า keyword ส่งมาเป็น '' (จาก search bar ที่ว่างเปล่า) เราก็ต้องรับค่า '' นั้น
+    
+    // Logic ที่อธิบายไปก่อนหน้านี้:
+    if (keyword !== currentKeyword.value) {
+        currentKeyword.value = keyword
+        page = 0 
+    }
     currentPage.value = page
-
+    
     const token = await getToken.value()
     
-    // เรียก API โดยส่ง page และ size=4
-    // getAll(keyword, token, page, size)
-    const response = await tripsApi.getAll(keyword, token, page, 4) // EDIT: ส่ง size=4 ตรงนี้
-    console.log('Full Response:', response) // Debug 1: ดู Response เต็มๆ
+    // ใน fetchTrips
+    // เช็คว่า keyword ถูกส่งมาจริงๆ (ลอง console.log ดู)
+    console.log('Searching for:', keyword);
+    const response = await tripsApi.getAll(keyword, token, page, 4)
+    
+    console.log('API Response:', response)
 
-    // ถ้า response เป็น Array แสดงว่า Backend ส่งมาแค่ข้อมูล (ไม่มี Pagination info)
-    if (Array.isArray(response)) {
-       console.log('Response is Array (No pagination metadata)')
-       // ถ้าจะทำ Pagination ต้องรู้จำนวนทั้งหมด หรือใช้ Client-side pagination
-       totalPages.value = 1 // สมมติไปก่อน
-    } else {
-       // ถ้าเป็น Object (PageResponse)
-       console.log('Response is Object with totalPages:', response.totalPages)
-       totalPages.value = response.totalPages || 1
-    }
-
-    // Handle response
     const content = Array.isArray(response) ? response : (response.content || [])
     
-    // เก็บ totalPages จาก response (ถ้ามี)
-    // if (!Array.isArray(response) && response.totalPages) { // ถูกลบเนื่องจากมีการตรวจสอบด้านบน
-    //   totalPages.value = response.totalPages
-    // }
+    if (!Array.isArray(response) && response.totalPages !== undefined) {
+      totalPages.value = response.totalPages
+    } else {
+       // Fallback ถ้าไม่มี pagination info
+       totalPages.value = content.length > 0 ? 1 : 0
+    }
 
     trips.value = content.map((item: any) => ({
       id: String(item.id || item.eid || ''),
@@ -67,7 +79,7 @@ const fetchTrips = async (keyword: string = '', page: number = 0) => {
       duration: `${Math.floor(Math.random() * 5) + 3} Days`,
       location: item.province || item.tags?.[0] || 'Thailand',
       image: item.coverImage || item.photos?.[0] || '',
-      photos: item.photos || [item.coverImage || ''], // EDIT: ใช้ photos ที่ backend ส่งมาได้เลย
+      photos: item.photos || [item.coverImage || ''],
       tags: item.tags || [],
       url: item.url || '#'
     }))
@@ -83,8 +95,8 @@ const fetchTrips = async (keyword: string = '', page: number = 0) => {
 // ฟังก์ชันเปลี่ยนหน้า
 const changePage = (newPage: number) => {
   if (newPage >= 0 && newPage < totalPages.value) {
-    fetchTrips('', newPage) // ส่ง keyword เดิม (ถ้ามีต้องเก็บ state keyword ไว้ด้วย)
-    // เลื่อน scroll ไปที่หัวข้อ
+    // ส่ง keyword เดิมไป เพื่อให้ผลลัพธ์การค้นหายังอยู่
+    fetchTrips(currentKeyword.value, newPage) 
     document.getElementById('trips-header')?.scrollIntoView({ behavior: 'smooth' })
   }
 }
