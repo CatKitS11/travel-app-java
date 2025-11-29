@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { MapPin, Map as ChevronLeft, ChevronRight } from 'lucide-vue-next' // เพิ่ม icon
+import { MapPin, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { tripsApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
 
@@ -136,7 +136,7 @@ const handleImageError = (e: Event) => {
         <button 
           @click="changePage(currentPage - 1)" 
           :disabled="currentPage === 0 || loading"
-          class="p-2 rounded-full hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          class="flex items-center justify-center p-2 rounded-full hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed "
           aria-label="Previous Page"
         >
           <ChevronLeft class="w-5 h-5" />
@@ -185,19 +185,19 @@ const handleImageError = (e: Event) => {
 
         <!-- Image Section -->
         <div class="sm:w-[350px] shrink-0 p-3">
-          <div
-            class="relative h-[300px] sm:h-full rounded-2xl overflow-hidden group-hover:shadow-sm transition-all bg-muted">
+          <router-link :to="`/trips/${trip.id}`"
+            class="relative h-[300px] sm:h-full rounded-2xl overflow-hidden group-hover:shadow-sm transition-all bg-muted block">
             <!-- เพิ่ม bg-muted รองรับตอนไม่มีรูป -->
             <img :src="trip.photos[0]" :alt="trip.title"
               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               @error="handleImageError" /> <!-- เพิ่ม @error -->
-          </div>
+          </router-link>
         </div>
 
         <!-- Content -->
         <div class="flex-1 p-4 flex flex-col justify-between min-w-0">
           <div>
-            <a :href="trip.url" target="_blank" class="block mb-2">
+            <a :href="`/trips/${trip.id}`" class="block mb-2">
               <h3
                 class="text-xl font-bold text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
                 {{ trip.title }}</h3>
