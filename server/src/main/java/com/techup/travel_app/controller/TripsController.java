@@ -16,6 +16,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.util.List;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpMethod;
+import java.util.Map;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/api/trips")
@@ -75,5 +78,20 @@ public class TripsController {
             @AuthenticationPrincipal User user) {
         tripsService.deleteTrip(id, user);
         return ResponseEntity.noContent().build();
+    }
+
+    // เพิ่ม Endpoint นี้
+    @PostMapping("/{id}/photos")
+    public ResponseEntity<TripsResponse> addPhotoToTrip(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> payload, // รับเป็น JSON { "url": "..." }
+            @AuthenticationPrincipal User user) {
+            
+        String photoUrl = payload.get("url");
+        if (photoUrl == null || photoUrl.isBlank()) {
+             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "URL is required");
+        }
+
+        return ResponseEntity.ok(tripsService.addPhotoToTrip(id, photoUrl, user));
     }
 }

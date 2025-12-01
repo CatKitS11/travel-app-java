@@ -16,12 +16,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.techup.travel_app.dto.TripsRequest;
 import com.techup.travel_app.entity.User;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -154,6 +158,32 @@ public class TripsServiceImpl implements TripsService {
         }
         
         tripsRepository.delete(trip);
+    }
+
+    @Override
+    @Transactional
+    public TripsResponse addPhotoToTrip(Long id, String photoUrl, User author) {
+        // 1. หา Trip
+        Trips trip = tripsRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Trip not found"));
+
+        // 2. เช็คว่าเป็นเจ้าของ Trip หรือไม่ (Optional แต่แนะนำ)
+        if (!trip.getAuthor().getId().equals(author.getId())) {
+             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not the owner of this trip");
+        }
+
+        // 3. เพิ่ม URL เข้าไปใน Array เดิม
+        List<String> currentPhotos = new ArrayList<>(Arrays.asList(trip.getPhotos()));
+        currentPhotos.add(photoUrl);
+        
+        // Convert List กลับเป็น String[]
+        trip.setPhotos(currentPhotos.toArray(new String[0]));
+
+        // 4. บันทึก
+        Trips saved = tripsRepository.save(trip);
+
+        // 5. คืนค่า DTO
+        return mapToResponse(saved);
     }
 
     private TripsListItemResponse mapToListItemResponse(Trips trip) {

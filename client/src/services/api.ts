@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://travel.catkits.work'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export async function apiRequest(
   endpoint: string, 

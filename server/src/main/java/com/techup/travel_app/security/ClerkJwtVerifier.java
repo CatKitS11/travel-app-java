@@ -77,6 +77,7 @@ public class ClerkJwtVerifier {
             // 6. Verify token
             return Jwts.parser()
                 .verifyWith(publicKey)
+                .clockSkewSeconds(3600) // ยอมให้เวลาต่างกันได้ 1 ชั่วโมง! (Token เก่าก็ยังใช้ได้)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

@@ -18,5 +18,6 @@ public interface TripsService {
     List<TripsListItemResponse> getMyTrips(User user);
     TripsResponse createTrip(TripsRequest request, User author);
     TripsResponse updateTrip(Long id, TripsRequest request, User author);
+    TripsResponse addPhotoToTrip(Long id, String photoUrl, User author);
     void deleteTrip(Long id, User author);
 }
