@@ -5,20 +5,25 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.techup.travel_app.entity.User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/files")  // เส้นนี้ต้องแนบ JWT ตาม SecurityConfig
+@RequestMapping("/api/files") // เส้นนี้ต้องแนบ JWT ตาม SecurityConfig
 @RequiredArgsConstructor
 public class FileUploadController {
 
   private final SupabaseStorageService supabaseStorageService;
 
   @PostMapping("/upload")
-  public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
-    String url = supabaseStorageService.uploadFile(file);
+  public ResponseEntity<Map<String, String>> upload(
+      @RequestParam("file") MultipartFile file,
+      @AuthenticationPrincipal User user) { // 1. รับ User จาก Token
+
+    // 2. ส่ง User ID ไปให้ Service
+    String url = supabaseStorageService.uploadFile(file, user.getClerkId());
     return ResponseEntity.ok(Map.of("url", url));
   }
 }
-

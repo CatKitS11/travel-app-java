@@ -26,10 +26,16 @@ public class SupabaseStorageService {
   private final WebClient webClient = WebClient.builder().build();
 
   /** อัปโหลดไฟล์ขึ้น Supabase แล้วคืน public URL */
-  public String uploadFile(MultipartFile file) {
+  public String uploadFile(MultipartFile file, String userId) {
     String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file.bin";
+    // สร้างชื่อไฟล์ให้ไม่ซ้ำ
     String fileName = System.currentTimeMillis() + "_" + original;
-    String uploadUrl = String.format("%s/storage/v1/object/%s/%s", supabaseUrl, bucket, fileName);
+    // 3. สร้าง Path ใหม่: userId/fileName
+    // เช่น: user_2pI.../170123456_trip.jpg
+    String filePath = userId + "/" + fileName;
+    // อัปเดต URL ที่จะยิงไป Supabase
+    // สังเกตตรง %s ตัวที่ 3 เปลี่ยนจาก fileName เป็น filePath
+    String uploadUrl = String.format("%s/storage/v1/object/%s/%s", supabaseUrl, bucket, filePath);
 
     byte[] bytes;
     try {
@@ -41,20 +47,19 @@ public class SupabaseStorageService {
     try {
       webClient.put()
           .uri(uploadUrl)
-          .header("Authorization", "Bearer " + apiKey)     // Service Role Key
+          .header("Authorization", "Bearer " + apiKey) // Service Role Key
           .header("Content-Type", file.getContentType() != null ? file.getContentType() : "application/octet-stream")
           .bodyValue(bytes)
           .retrieve()
-          .onStatus(HttpStatusCode::isError, res ->
-              res.bodyToMono(String.class).defaultIfEmpty("Upload failed").flatMap(msg ->
-                  Mono.error(new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Supabase upload failed: " + msg))
-              )
-          )
+          .onStatus(HttpStatusCode::isError,
+              res -> res.bodyToMono(String.class).defaultIfEmpty("Upload failed")
+                  .flatMap(msg -> Mono
+                      .error(new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Supabase upload failed: " + msg))))
           .toBodilessEntity()
           .block();
 
       // public URL สำหรับ access ไฟล์ได้ทันที
-      return String.format("%s/storage/v1/object/public/%s/%s", supabaseUrl, bucket, fileName);
+      return String.format("%s/storage/v1/object/public/%s/%s", supabaseUrl, bucket, filePath);
 
     } catch (ResponseStatusException ex) {
       throw ex;
@@ -63,4 +68,3 @@ public class SupabaseStorageService {
     }
   }
 }
-
