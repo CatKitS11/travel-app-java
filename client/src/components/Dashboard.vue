@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watchEffect } from 'vue'
+import { useRouter } from 'vue-router'
 import { tripsApi } from '../services/api'
-import { useAuth } from '@clerk/vue'
+import { useAuth, useUser } from '@clerk/vue'
 import { Plus, Edit, Trash2, MapPin, Loader2, LayoutDashboard } from 'lucide-vue-next'
-import TripFormModal from './TripFormModal.vue' // Import Component ใหม่
+import TripFormModal from './TripFormModal.vue'
 
+const router = useRouter()
+const { isSignedIn, isLoaded } = useUser() // ดึงสถานะ user
 const { getToken } = useAuth()
+
+watchEffect(() => {
+  if (isLoaded.value && !isSignedIn.value) {
+    router.push('/') // ถ้าโหลดเสร็จแล้ว และไม่ได้ Login ให้ดีดกลับหน้าแรก
+  }
+})
 
 interface Trip {
   id: number

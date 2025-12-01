@@ -6,7 +6,11 @@ import Dashboard from './components/Dashboard.vue' // EDIT: Import Dashboard
 const routes = [
   { path: '/', component: LandingPage },
   { path: '/trips/:id', component: TripDetail },
-  { path: '/dashboard', component: Dashboard } // EDIT: เพิ่ม route สำหรับ Dashboard
+  { 
+    path: '/dashboard', 
+    component: Dashboard,
+    meta: { requiresAuth: true } // EDIT: เพิ่ม meta field
+  } 
 ]
 
 const router = createRouter({

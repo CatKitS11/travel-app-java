@@ -33,16 +33,17 @@ public class SecurityConfig {
                                                                                                               // เพราะใช้
                                                                                                               // JWT
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints (ไม่ต้อง login)
-                        .requestMatchers("/api/trips/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/error").permitAll()
 
                         // Protected endpoints (ต้อง login)
                         .requestMatchers("/api/trips/mine").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/trips").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/trips/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/trips/**").authenticated()
+
+                        // Public endpoints (ไม่ต้อง login)
+                        .requestMatchers(HttpMethod.GET,"/api/trips/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/error").permitAll()
 
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -54,10 +55,10 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5173", // Vite dev server
-            "http://localhost:3000", // Alternative dev port
-            "https://travel-app-java.vercel.app", // Vercel production
-            "https://*.vercel.app" // All Vercel preview deployments
+                "http://localhost:5173", // Vite dev server
+                "http://localhost:3000", // Alternative dev port
+                "https://travel-app-java.vercel.app", // Vercel production
+                "https://*.vercel.app" // All Vercel preview deployments
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
