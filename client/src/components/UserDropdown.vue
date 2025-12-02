@@ -65,10 +65,10 @@ const handleLogout = async () => {
              Dashboard
         </router-link>
 
-        <button class="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors flex items-center gap-2 text-foreground opacity-50 cursor-not-allowed">
-             <User class="w-4 h-4" />
-             Profile (Coming Soon)
-        </button>
+        <router-link to="/profile" class="w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors flex items-center gap-2 text-foreground">
+            <User class="w-4 h-4" />
+            Profile
+        </router-link>
         
         <div class="h-px bg-border my-1"></div>
 
