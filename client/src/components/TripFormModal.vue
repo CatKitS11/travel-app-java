@@ -126,8 +126,8 @@ const handleCoordinateInput = () => {
   const parts = input.split(',')
   
   if (parts.length === 2) {
-    const lat = parseFloat(parts[0].trim())
-    const lng = parseFloat(parts[1].trim())
+    const lat = parseFloat(parts[0]!.trim())
+    const lng = parseFloat(parts[1]!.trim())
     
     if (!isNaN(lat) && !isNaN(lng)) {
       formData.value.latitude = lat

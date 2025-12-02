@@ -14,7 +14,7 @@ const profile = computed(() => {
         email: user.value.primaryEmailAddress?.emailAddress,
         imageUrl: user.value.imageUrl,
         username: user.value.username || 'No username set',
-        lastActiveAt: user.value.lastActiveAt
+        lastActiveAt: (user.value as any).lastActiveAt
     }
 })
 
