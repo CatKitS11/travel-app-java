@@ -73,20 +73,20 @@ const handleDelete = async (id: number) => {
 }
 
 onMounted(() => {
-    const appContainer = document.querySelector('.overflow-y-auto')
-    if (appContainer) {
-        (appContainer as HTMLElement).style.scrollBehavior = 'auto'
-        appContainer.classList.remove('snap-y', 'snap-mandatory')
-        appContainer.scrollTop = 0
-    }
+  const appContainer = document.querySelector('.overflow-y-auto')
+  if (appContainer) {
+    (appContainer as HTMLElement).style.scrollBehavior = 'auto'
+    appContainer.classList.remove('snap-y', 'snap-mandatory')
+    appContainer.scrollTop = 0
+  }
   fetchMyTrips()
 })
 
 onUnmounted(() => {
-    const appContainer = document.querySelector('.h-screen.overflow-y-auto')
-    if (appContainer) {
-        appContainer.classList.add('snap-y', 'snap-mandatory')
-    }
+  const appContainer = document.querySelector('.h-screen.overflow-y-auto')
+  if (appContainer) {
+    appContainer.classList.add('snap-y', 'snap-mandatory')
+  }
 })
 </script>
 
@@ -96,12 +96,13 @@ onUnmounted(() => {
     <div class="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
       <div>
         <h1 class="text-3xl font-bold flex items-center gap-2">
-           <LayoutDashboard class="w-8 h-8 text-primary" />
-           My Dashboard
+          <LayoutDashboard class="w-8 h-8 text-primary" />
+          My Dashboard
         </h1>
         <p class="text-muted-foreground mt-1">Manage your shared destinations</p>
       </div>
-      <button @click="openCreateModal" class="bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg hover:shadow-primary/20">
+      <button @click="openCreateModal"
+        class="bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg hover:shadow-primary/20">
         <Plus class="w-5 h-5" />
         Add Destination
       </button>
@@ -114,7 +115,8 @@ onUnmounted(() => {
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="trips.length === 0" class="text-center py-20 bg-muted/30 rounded-3xl border border-dashed border-border">
+    <div v-else-if="trips.length === 0"
+      class="text-center py-20 bg-muted/30 rounded-3xl border border-dashed border-border">
       <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
         <Plus class="w-8 h-8 text-muted-foreground" />
       </div>
@@ -125,18 +127,23 @@ onUnmounted(() => {
 
     <!-- Grid Layout -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="trip in trips" :key="trip.id" class="group bg-card border border-border/50 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
+      <div v-for="trip in trips" :key="trip.id"
+        class="group bg-card border border-border/50 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300">
         <!-- Image -->
         <div class="h-48 bg-muted relative overflow-hidden">
-          <img v-if="trip.coverImage" :src="trip.coverImage" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img v-if="trip.coverImage" :src="trip.coverImage"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground">No Image</div>
-          
+
           <!-- Actions Overlay -->
-          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-            <button @click="openEditModal(trip.id)" class="p-2 bg-white rounded-full text-black hover:bg-gray-100 transition-colors" title="Edit">
+          <div
+            class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            <button @click="openEditModal(trip.id)"
+              class="p-2 bg-white rounded-full text-black hover:bg-gray-100 transition-colors" title="Edit">
               <Edit class="w-5 h-5" />
             </button>
-            <button @click="handleDelete(trip.id)" class="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors" title="Delete">
+            <button @click="handleDelete(trip.id)"
+              class="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors" title="Delete">
               <Trash2 class="w-5 h-5" />
             </button>
           </div>
@@ -152,21 +159,21 @@ onUnmounted(() => {
             {{ trip.province || 'No location' }}
           </div>
           <p class="text-sm text-muted-foreground/80 line-clamp-2 mb-4 h-10">{{ trip.shortDescription }}</p>
-          
+
           <div class="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-3">
             <span>Updated: {{ new Date(trip.updatedAt).toLocaleDateString() }}</span>
-            <router-link :to="`/trips/${trip.id}`" class="text-primary hover:underline">View Detail &rarr;</router-link>
+            <router-link :to="`/trips/${trip.id}?from=dashboard`"
+              class="inline-flex items-center shrink-0 mb-4 px-4 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
+              <span class="text-base pr-2">View Detail</span>
+              <span class="text-2xl pr-1 pb-1">&rarr;</span>
+            </router-link>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Modal Component -->
-    <TripFormModal 
-      :is-open="isModalOpen"
-      :edit-id="editTripId"
-      @close="isModalOpen = false"
-      @success="handleModalSuccess"
-    />
+    <TripFormModal :is-open="isModalOpen" :edit-id="editTripId" @close="isModalOpen = false"
+      @success="handleModalSuccess" />
   </div>
 </template>

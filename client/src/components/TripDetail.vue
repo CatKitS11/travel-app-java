@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { tripsApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
@@ -11,6 +11,22 @@ import ImageLightbox from './ImageLightbox.vue'
 const route = useRoute()
 const { getToken } = useAuth()
 const tripId = ref(route.params.id as string)
+
+// สร้าง Computed Property สำหรับลิงก์ Back
+const backRoute = computed(() => {
+  if (route.query.from === 'dashboard') {
+    return '/dashboard'
+  }
+  return '/' // ค่า Default กลับไปหน้า Home
+})
+
+// สร้าง Computed Property สำหรับข้อความปุ่ม (Optional)
+const backText = computed(() => {
+  if (route.query.from === 'dashboard') {
+    return 'Back to Dashboard'
+  }
+  return 'Back to Home'
+})
 
 // Interface ให้ตรงกับ TripsResponse จาก Backend
 interface TripDetail {
@@ -96,9 +112,10 @@ onUnmounted(() => {
 
         <!-- Content State -->
         <div v-else-if="trip" class="space-y-8">
-            <router-link to="/"
-                class="inline-block shrink-0 mb-4 px-4 py-3 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
-                &larr; Back to Home
+            <router-link :to="backRoute"
+                class="inline-flex items-center shrink-0 mb-4 px-4 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
+                <span class="text-2xl pr-2 pb-1">&larr;</span>
+                <span class="text-base">{{ backText }}</span>
             </router-link>
 
             <!-- Layout Grid: 2 Columns on Large Screens -->
