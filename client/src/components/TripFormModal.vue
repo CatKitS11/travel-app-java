@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import { tripsApi } from '../services/api'
+import { tripsApi, filesApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
-import { X, Loader2, MapPin, ExternalLink } from 'lucide-vue-next' // เพิ่ม icon
+import { X, Loader2, MapPin, ExternalLink } from 'lucide-vue-next'
 
 const props = defineProps<{
   isOpen: boolean
@@ -13,7 +13,40 @@ const emit = defineEmits(['close', 'success'])
 const { getToken } = useAuth()
 
 const isSubmitting = ref(false)
-const isLoading = ref(false) // สำหรับตอน fetch data มา edit
+const isLoading = ref(false)
+
+// ----------------------------------------------------
+// [เพิ่มส่วนนี้] Logic สำหรับ Upload รูปภาพ
+// ----------------------------------------------------
+const isUploading = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const handleFileUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    const file = target.files[0]
+    isUploading.value = true
+    
+    try {
+      const token = await getToken.value()
+      if (!token) throw new Error('No token')
+      
+      // เรียกใช้ filesApi ที่เพิ่มใน services/api.ts
+      const result = await filesApi.upload(file, token)
+      
+      if (result.url) {
+        formData.value.photos.push(result.url)
+      }
+    } catch (err) {
+      console.error('Upload failed:', err)
+      alert('Failed to upload image')
+    } finally {
+      isUploading.value = false
+      target.value = '' // Reset input file ให้เลือกไฟล์เดิมซ้ำได้ถ้าต้องการ
+    }
+  }
+}
+// ----------------------------------------------------
 
 // Form Data
 const formData = ref({
@@ -193,7 +226,26 @@ const removeTag = (idx: number) => formData.value.tags.splice(idx, 1)
           <label class="block text-sm font-medium mb-1">Photos (URLs)</label>
           <div class="flex gap-2 mb-2">
             <input v-model="formData.tempPhoto" type="text" class="flex-1 px-4 py-2 rounded-xl bg-muted/50 border border-border outline-none" placeholder="https://example.com/image.jpg" @keydown.enter.prevent="addPhoto" />
-            <button @click.prevent="addPhoto" class="px-4 py-2 bg-secondary rounded-xl font-medium">Add</button>
+            
+            <!-- ส่วนที่เพิ่ม: Input File (ซ่อนไว้) และปุ่ม Upload -->
+            <input 
+              type="file" 
+              ref="fileInput" 
+              class="hidden" 
+              accept="image/*" 
+              @change="handleFileUpload" 
+            />
+            <button 
+              @click.prevent="fileInput?.click()" 
+              class="px-4 py-2 bg-muted hover:bg-muted/80 border border-border rounded-xl font-medium flex items-center gap-2 transition-colors"
+              :disabled="isUploading"
+            >
+              <Loader2 v-if="isUploading" class="w-4 h-4 animate-spin" />
+              <span v-else>Upload</span>
+            </button>
+            <!-- จบส่วนที่เพิ่ม -->
+
+            <button @click.prevent="addPhoto" class="px-4 py-2 bg-secondary rounded-xl font-medium">Add Link</button>
           </div>
           <div class="space-y-2">
             <div v-for="(photo, idx) in formData.photos" :key="idx" class="flex items-center gap-2 bg-muted/30 p-2 rounded-lg group">

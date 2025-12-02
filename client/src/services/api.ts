@@ -69,3 +69,27 @@ export const tripsApi = {
       method: 'DELETE'
     }, token),
 }
+
+export const filesApi = {
+  upload: async (file: File, token: string) => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    // ใช้ fetch โดยตรงเพื่อให้ Browser จัดการ Content-Type: multipart/form-data ให้เอง
+    const response = await fetch(`${API_BASE_URL}/api/files/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Upload Error: ${response.status} - ${errorText}`)
+    }
+
+    // คืนค่า { url: "..." }
+    return response.json()
+  }
+}
