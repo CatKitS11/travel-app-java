@@ -43,6 +43,7 @@ public class SecurityConfig {
                         // Public endpoints (ไม่ต้อง login)
                         .requestMatchers(HttpMethod.GET,"/api/trips/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/webhooks/**").permitAll()
                         .requestMatchers("/error").permitAll()
 
                         .anyRequest().authenticated())

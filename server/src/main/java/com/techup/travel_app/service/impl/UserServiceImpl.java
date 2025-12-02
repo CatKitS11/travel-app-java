@@ -1,6 +1,7 @@
 package com.techup.travel_app.service.impl;
 
 import com.techup.travel_app.entity.User;
+import com.techup.travel_app.repository.TripsRepository;
 import com.techup.travel_app.repository.UserRepository;
 import com.techup.travel_app.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final TripsRepository tripsRepository;
 
     @Override
     @Transactional
@@ -68,5 +70,15 @@ public class UserServiceImpl implements UserService {
         }
         
         return user;
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserByClerkId(String clerkId) {
+        userRepository.findByClerkId(clerkId).ifPresent(user -> {
+            log.info("Deleting user: {} and their trips", user.getEmail());
+            tripsRepository.deleteByAuthor(user);
+            userRepository.delete(user);
+        });
     }
 }

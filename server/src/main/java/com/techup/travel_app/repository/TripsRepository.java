@@ -32,4 +32,6 @@ public interface TripsRepository extends JpaRepository<Trips, Long> {
 
     // New method for finding user's trips
     List<Trips> findAllByAuthorOrderByUpdatedAtDesc(User author);
+
+    void deleteByAuthor(User author);
 }
