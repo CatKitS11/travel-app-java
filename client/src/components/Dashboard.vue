@@ -3,8 +3,9 @@ import { ref, onMounted, onUnmounted, watchEffect } from 'vue'
 import { useRouter } from 'vue-router'
 import { tripsApi } from '../services/api'
 import { useAuth, useUser } from '@clerk/vue'
-import { Plus, Edit, Trash2, MapPin, Loader2, LayoutDashboard } from 'lucide-vue-next'
+import { Plus, Edit, Trash2, MapPin, LayoutDashboard } from 'lucide-vue-next'
 import TripFormModal from './TripFormModal.vue'
+import TripSkeleton from './TripSkeleton.vue'
 
 const router = useRouter()
 const { isSignedIn, isLoaded } = useUser() // ดึงสถานะ user
@@ -109,9 +110,8 @@ onUnmounted(() => {
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="text-center py-20">
-      <Loader2 class="w-10 h-10 animate-spin mx-auto text-primary" />
-      <p class="mt-4 text-muted-foreground">Loading your trips...</p>
+    <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <TripSkeleton v-for="i in 3" :key="i" />
     </div>
 
     <!-- Empty State -->
@@ -163,9 +163,9 @@ onUnmounted(() => {
           <div class="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-3">
             <span>Updated: {{ new Date(trip.updatedAt).toLocaleDateString() }}</span>
             <router-link :to="`/trips/${trip.id}?from=dashboard`"
-              class="inline-flex items-center shrink-0 mb-4 px-4 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
-              <span class="text-base pr-2">View Detail</span>
-              <span class="text-2xl pr-1 pb-1">&rarr;</span>
+              class="inline-flex items-center shrink-0 mb-1 px-4 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
+              <span class="text-base p-0.5">View Detail</span>
+              <!-- <span class="text-2xl pr-1 pb-1">&rarr;</span> -->
             </router-link>
           </div>
         </div>

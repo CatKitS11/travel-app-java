@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { tripsApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
+import TripSkeleton from './TripSkeleton.vue'
 
 const { getToken, isSignedIn } = useAuth()
 
@@ -158,8 +159,8 @@ const handleImageError = (e: Event) => {
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex flex-col gap-8">
-      <div v-for="i in 3" :key="i" class="h-64 rounded-3xl bg-muted/50 animate-pulse"></div>
+    <div v-if="loading" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <TripSkeleton v-for="i in 4" :key="i" />
     </div>
 
     <!-- No trips found -->
