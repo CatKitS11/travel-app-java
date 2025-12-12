@@ -6,7 +6,7 @@ import { useAuth } from '@clerk/vue'
 // EDIT: เพิ่ม import icons
 import { MapPin, ExternalLink, MapPinOff } from 'lucide-vue-next'
 // 1. เพิ่ม Import Component ใหม่
-import ImageLightbox from './ImageLightbox.vue'
+import ImageLightbox from '../components/ImageLightbox.vue'
 
 const route = useRoute()
 const { getToken } = useAuth()
@@ -214,8 +214,8 @@ onUnmounted(() => {
             </div>
 
             <!-- Map Section -->
-            <div id="map-section" class="mt-12 pt-8 border-t border-border">
-                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <div id="map-section" class="mt-12 border-t border-border">
+                <h2 class="text-2xl font-bold my-5 flex items-center justify-start gap-2 py-[5px]">
                     Location
                 </h2>
 
@@ -261,3 +261,4 @@ onUnmounted(() => {
             @close="lightboxOpen = false" />
     </div> <!-- ปิด div หลัก -->
 </template>
+

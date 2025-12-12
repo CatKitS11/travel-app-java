@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import SearchBar from './SearchBar.vue'
-import TripsList from './TripsList.vue'
+import SearchBar from '../components/SearchBar.vue'
+import TripsList from '../components/TripsList.vue'
 
 const tripsListRef = ref<InstanceType<typeof TripsList> | null>(null)
 const isSticky = ref(false)
@@ -132,3 +132,4 @@ onUnmounted(() => {
   }
 }
 </style>
+

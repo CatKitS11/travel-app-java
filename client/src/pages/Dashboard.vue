@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router'
 import { tripsApi } from '../services/api'
 import { useAuth, useUser } from '@clerk/vue'
 import { Plus, Edit, Trash2, MapPin, LayoutDashboard } from 'lucide-vue-next'
-import TripFormModal from './TripFormModal.vue'
-import TripSkeleton from './TripSkeleton.vue'
+import TripFormModal from '../components/TripFormModal.vue'
+import TripSkeleton from '../components/TripSkeleton.vue'
 
 const router = useRouter()
 const { isSignedIn, isLoaded } = useUser() // ดึงสถานะ user
@@ -111,7 +111,7 @@ onUnmounted(() => {
 
     <!-- Loading -->
     <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <TripSkeleton v-for="i in 3" :key="i" />
+      <TripSkeleton v-for="i in 6" :key="i" />
     </div>
 
     <!-- Empty State -->
@@ -177,3 +177,4 @@ onUnmounted(() => {
       @success="handleModalSuccess" />
   </div>
 </template>
+
