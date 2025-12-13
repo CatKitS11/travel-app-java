@@ -50,13 +50,14 @@ onUnmounted(() => {
     <!-- Section 1: Hero (หน้าแรก) -->
     <section class="h-screen w-full snap-start flex flex-col items-center justify-center relative">
       <!-- เนื้อหา Hero เดิมของคุณ -->
-      <div class="py-14 text-center max-w-4xl mx-auto space-y-6 animate-fade-in-up">
+      <div class="py-6 sm:py-10 md:py-14 text-center max-w-4xl mx-auto space-y-4 sm:space-y-6 px-4 animate-fade-in-up">
         <div
-          class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/50 text-accent-foreground text-sm font-medium mb-4 border border-accent/20">
+          class="inline-flex items-center gap-2 px-2 sm:px-3 py-1 rounded-full bg-accent/50 text-accent-foreground text-xs sm:text-sm font-medium mb-3 sm:mb-4 border border-accent/20">
           <span>✨ ออกเดินทางสู่โลกกว้างไปกับเรา</span>
         </div>
 
-        <h1 class="py-4 text-7xl font-bold tracking-tight text-foreground leading-tight">
+        <h1
+          class="py-2 sm:py-4 text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground leading-tight px-2">
           ค้นหาจุดหมาย... <br />
           <span
             class="bg-gradient-to-r from-primary via-yellow-300 to-primary bg-clip-text text-transparent bg-300-percent animate-gradient">
@@ -64,7 +65,7 @@ onUnmounted(() => {
           </span>
         </h1>
 
-        <p class="text-lg py-4 md:text-xl text-muted-foreground max-w-2xl mx-auto">
+        <p class="text-base sm:text-lg md:text-xl py-2 sm:py-4 text-muted-foreground max-w-2xl mx-auto px-4">
           รวบรวม TripAdvisor ที่พักและเที่ยวบิน เพื่อการพักผ่อนที่สมบูรณ์แบบของคุณ
         </p>
       </div>
@@ -132,4 +133,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

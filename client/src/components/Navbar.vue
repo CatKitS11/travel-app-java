@@ -60,9 +60,9 @@ const handleSignUp = () => {
         </div>
         
         <!-- Mobile Menu Button -->
-        <button class="md:hidden p-2 text-muted-foreground hover:text-foreground">
+        <!-- <button class="md:hidden p-2 text-muted-foreground hover:text-foreground">
           <Menu class="w-6 h-6" />
-        </button>
+        </button> -->
       </div>
     </div>
   </nav>

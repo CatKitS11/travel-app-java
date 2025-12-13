@@ -32,45 +32,45 @@ const fetchTrips = async (keyword: string = '', page: number = 0) => {
   try {
     loading.value = true
     error.value = ''
-    
+
     // Logic การจัดการ keyword:
     // ถ้ามีการส่ง keyword มาใหม่ (เช่น กดค้นหา) -> อัปเดต currentKeyword และ reset หน้าไปที่ 0
     // ถ้าเป็นการเปลี่ยนหน้า (keyword อาจจะว่างจากการเรียก changePage) -> ใช้ currentKeyword เดิม
-    
+
     // กรณีเรียกจาก SearchBar (keyword มีค่า) หรือ Reset (keyword='')
     // เราจะรู้ได้ไงว่านี่คือการ "เปลี่ยนหน้า" หรือ "ค้นหาใหม่"?
     // ปกติ changePage เราจะเรียก fetchTrips โดยไม่ส่ง keyword (หรือส่ง currentKeyword)
-    
+
     // เพื่อความชัวร์:
     // 1. ถ้า keyword !== currentKeyword.value แปลว่ามีการ Search ใหม่ -> Reset page = 0
     // 2. ถ้า keyword === currentKeyword.value แปลว่าอาจจะเปลี่ยนหน้า หรือ refresh -> ใช้ page ที่ส่งมา
-    
+
     // ถ้า keyword ไม่ส่งมา ให้ใช้ keyword ล่าสุด
     // แต่ถ้า keyword ส่งมาเป็น '' (จาก search bar ที่ว่างเปล่า) เราก็ต้องรับค่า '' นั้น
-    
+
     // Logic ที่อธิบายไปก่อนหน้านี้:
     if (keyword !== currentKeyword.value) {
-        currentKeyword.value = keyword
-        page = 0 
+      currentKeyword.value = keyword
+      page = 0
     }
     currentPage.value = page
-    
+
     const token = await getToken.value()
-    
+
     // ใน fetchTrips
     // เช็คว่า keyword ถูกส่งมาจริงๆ (ลอง console.log ดู)
     console.log('Searching for:', keyword);
     const response = await tripsApi.getAll(keyword, token, page, 4)
-    
+
     console.log('API Response:', response)
 
     const content = Array.isArray(response) ? response : (response.content || [])
-    
+
     if (!Array.isArray(response) && response.totalPages !== undefined) {
       totalPages.value = response.totalPages
     } else {
-       // Fallback ถ้าไม่มี pagination info
-       totalPages.value = content.length > 0 ? 1 : 0
+      // Fallback ถ้าไม่มี pagination info
+      totalPages.value = content.length > 0 ? 1 : 0
     }
 
     trips.value = content.map((item: any) => ({
@@ -84,7 +84,7 @@ const fetchTrips = async (keyword: string = '', page: number = 0) => {
       tags: item.tags || [],
       url: item.url || '#'
     }))
-    
+
   } catch (err) {
     console.error('Error fetching trips:', err)
     error.value = 'Failed to load trips'
@@ -97,7 +97,7 @@ const fetchTrips = async (keyword: string = '', page: number = 0) => {
 const changePage = (newPage: number) => {
   if (newPage >= 0 && newPage < totalPages.value) {
     // ส่ง keyword เดิมไป เพื่อให้ผลลัพธ์การค้นหายังอยู่
-    fetchTrips(currentKeyword.value, newPage) 
+    fetchTrips(currentKeyword.value, newPage)
     document.getElementById('trips-header')?.scrollIntoView({ behavior: 'smooth' })
   }
 }
@@ -130,41 +130,36 @@ const handleImageError = (e: Event) => {
 <template>
   <div class="w-full max-w-[1500px] mx-auto px-4 pb-20">
     <div id="trips-header" class="flex items-center justify-between mb-8">
-      <h2 class="text-3xl font-bold text-foreground">ค้นหาที่เที่ยวที่สนใจ</h2>
-      
+      <h2 class="text-xl sm:text-3xl font-bold text-foreground">ค้นหาที่เที่ยวที่สนใจ</h2>
+
       <!-- Pagination Controls (แทน View All) -->
-      <div class="flex items-center gap-2" v-if="totalPages > 1">
-        <button 
-          @click="changePage(currentPage - 1)" 
-          :disabled="currentPage === 0 || loading"
+      <div class="flex items-center gap-2 self-end" v-if="totalPages > 1">
+        <button @click="changePage(currentPage - 1)" :disabled="currentPage === 0 || loading"
           class="flex items-center justify-center p-2 rounded-full hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed "
-          aria-label="Previous Page"
-        >
+          aria-label="Previous Page">
           <ChevronLeft class="w-5 h-5" />
         </button>
-        
-        <span class="text-sm font-medium text-muted-foreground">
+
+        <span class="text-sm font-medium text-muted-foreground whitespace-nowrap">
           {{ currentPage + 1 }} / {{ totalPages }}
         </span>
-        
-        <button 
-          @click="changePage(currentPage + 1)" 
-          :disabled="currentPage >= totalPages - 1 || loading"
+
+        <button @click="changePage(currentPage + 1)" :disabled="currentPage >= totalPages - 1 || loading"
           class="p-2 rounded-full hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Next Page"
-        >
+          aria-label="Next Page">
           <ChevronRight class="w-5 h-5" />
         </button>
       </div>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div v-if="loading" class="grid grid-cols-1 xl:grid-cols-2 gap-6">
       <TripSkeleton v-for="i in 4" :key="i" />
     </div>
 
     <!-- No trips found -->
-    <div v-else-if="!loading && trips.length === 0" class="flex flex-col items-center justify-center py-20 text-center space-y-4">
+    <div v-else-if="!loading && trips.length === 0"
+      class="flex flex-col items-center justify-center py-20 text-center space-y-4">
       <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-2">
         <MapPin class="w-8 h-8 text-muted-foreground opacity-50" />
       </div>
@@ -180,14 +175,14 @@ const handleImageError = (e: Event) => {
     </div>
 
     <!-- Data State -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6"> <!-- EDIT: ปรับเป็น Grid 2 คอลัมน์ -->
+    <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-6"> <!-- EDIT: ปรับเป็น Grid 2 คอลัมน์ -->
       <div v-for="trip in trips" :key="trip.id"
-        class="h-full group relative bg-card rounded-2xl hover:shadow-md transition-all duration-300 border border-border/50 flex flex-col sm:flex-row">
+        class="h-full group relative bg-gradient-to-r from-accent via-sky-50 to-accent bg-300-percent animate-gradient rounded-2xl hover:shadow-md transition-all duration-300 border border-border/50 flex flex-col sm:flex-row">
 
         <!-- Image Section -->
         <div class="sm:w-[350px] shrink-0 p-3">
           <router-link :to="`/trips/${trip.id}`"
-            class="relative h-[300px] sm:h-full rounded-2xl overflow-hidden group-hover:shadow-sm transition-all bg-muted block">
+            class="relative h-[200px] sm:h-full rounded-2xl overflow-hidden group-hover:shadow-sm transition-all bg-muted block">
             <!-- เพิ่ม bg-muted รองรับตอนไม่มีรูป -->
             <img :src="trip.photos[0]" :alt="trip.title"
               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -241,10 +236,8 @@ const handleImageError = (e: Event) => {
                 </div>
               </div>
 
-              <router-link 
-                :to="`/trips/${trip.id}`" 
-                class="shrink-0 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm"
-              >
+              <router-link :to="`/trips/${trip.id}`"
+                class="shrink-0 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
                 View Detail
               </router-link>
             </div>
@@ -264,5 +257,27 @@ const handleImageError = (e: Event) => {
 .h-15 {
   height: 3.75rem;
   /* 60px */
+}
+
+.bg-300-percent {
+  background-size: 300% auto !important;
+}
+
+.animate-gradient {
+  animation: gradient 10s linear infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 </style>

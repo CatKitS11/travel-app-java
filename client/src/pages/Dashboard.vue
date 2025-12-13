@@ -94,18 +94,18 @@ onUnmounted(() => {
 <template>
   <div class="w-full max-w-7xl mx-auto px-4 py-8 pb-20">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+    <div class="flex  items-center justify-between mb-8 gap-4">
       <div>
-        <h1 class="text-3xl font-bold flex items-center gap-2">
-          <LayoutDashboard class="w-8 h-8 text-primary" />
+        <h1 class="text-xl sm:text-3xl font-bold flex items-center gap-2 whitespace-nowrap">
+          <LayoutDashboard class="w-6 sm:w-8 h-6 sm:h-8 text-primary" />
           My Dashboard
         </h1>
-        <p class="text-muted-foreground mt-1">Manage your shared destinations</p>
+        <p class="sm:text-muted-foreground text-muted-foreground whitespace-nowrap text-xs sm:text-base sm:block mt-1">Manage your shared destinations</p>
       </div>
       <button @click="openCreateModal"
-        class="bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg hover:shadow-primary/20">
+        class="bg-primary text-primary-foreground sm:px-6 px-2 sm:py-2.5 py-2 rounded-full font-medium hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg hover:shadow-primary/20">
         <Plus class="w-5 h-5" />
-        Add Destination
+        <span class="hidden sm:block">Add Destination</span>
       </button>
     </div>
 
@@ -137,20 +137,20 @@ onUnmounted(() => {
 
           <!-- Actions Overlay -->
           <div
-            class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            class="absolute inset-0 xl:bg-black/40 xl:opacity-0 opacity-100 group-hover:opacity-100 transition-opacity flex xl:items-center xl:justify-center justify-end items-start xl:gap-3 gap-2">
             <button @click="openEditModal(trip.id)"
-              class="p-2 bg-white rounded-full text-black hover:bg-gray-100 transition-colors" title="Edit">
+              class="p-2 bg-white rounded-full text-black hover:bg-gray-100 transition-colors mt-2 xl:mt-0" title="Edit">
               <Edit class="w-5 h-5" />
             </button>
             <button @click="handleDelete(trip.id)"
-              class="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors" title="Delete">
+              class="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors mt-2 mr-2 xl:mr-0 xl:mt-0" title="Delete">
               <Trash2 class="w-5 h-5" />
             </button>
           </div>
         </div>
 
         <!-- Content -->
-        <div class="p-4">
+        <div class="p-4 bg-gradient-to-r from-accent via-sky-50 to-accent bg-300-percent animate-gradient">
           <div class="flex items-start justify-between mb-2">
             <h3 class="font-bold text-lg line-clamp-1">{{ trip.title }}</h3>
           </div>
@@ -178,3 +178,26 @@ onUnmounted(() => {
   </div>
 </template>
 
+<style scoped>
+.bg-300-percent {
+  background-size: 300% auto !important;
+}
+
+.animate-gradient {
+  animation: gradient 10s linear infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+</style>

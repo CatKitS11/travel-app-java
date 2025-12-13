@@ -36,7 +36,7 @@ watch(isSignedIn, async (newValue) => {
     <!-- แต่ถ้าอยากให้ Navbar เลื่อนไปกับ section แรก ก็ใส่ไว้ใน section แรกได้ -->
     <Navbar class="fixed top-0 left-0 right-0 z-50" /> 
     
-    <main class="w-full pt-20"> <!-- เพิ่ม pt-20 เพราะ Navbar fixed -->
+    <main class="w-full pt-2 sm:pt-5"> <!-- เพิ่ม pt-20 เพราะ Navbar fixed -->
       <!-- <LandingPage />  <-- ลบออก -->
       <router-view /> <!-- ใส่ตัวนี้แทน -->
     </main>

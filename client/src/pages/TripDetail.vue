@@ -93,7 +93,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="w-full max-w-7xl mx-auto px-4 py-2 pb-20">
+    <div class="w-full max-w-7xl mx-auto px-4 py-0 sm:py-2 pb-20">
         <!-- Loading State -->
         <div v-if="loading" class="text-center py-20 flex flex-col items-center">
             <div class="animate-pulse flex flex-col items-center space-y-4 w-full">
@@ -114,8 +114,8 @@ onUnmounted(() => {
         <div v-else-if="trip" class="space-y-8">
             <router-link :to="backRoute"
                 class="inline-flex items-center shrink-0 mb-4 px-4 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap ml-2 shadow-sm">
-                <span class="text-2xl pr-2 pb-1">&larr;</span>
-                <span class="text-base">{{ backText }}</span>
+                <span class="hidden sm:block sm:text-2xl pr-2 pb-1">&larr;</span>
+                <span class="text-sm sm:text-base">{{ backText }}</span>
             </router-link>
 
             <!-- Layout Grid: 2 Columns on Large Screens -->
