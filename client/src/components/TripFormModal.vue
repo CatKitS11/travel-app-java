@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue'
 import { tripsApi, filesApi } from '../services/api'
 import { useAuth } from '@clerk/vue'
 import { X, Loader2, MapPin, ExternalLink } from 'lucide-vue-next'
+import Alert from './Alert.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -15,6 +16,17 @@ const { getToken } = useAuth()
 const isSubmitting = ref(false)
 const isLoading = ref(false)
 
+// Alert State
+const alertState = ref({
+  visible: false,
+  variant: 'default' as 'default' | 'destructive' | 'success' | 'warning' | 'info',
+  message: ''
+})
+
+const showAlert = (variant: 'destructive' | 'warning', message: string) => {
+  alertState.value = { visible: true, variant, message }
+}
+
 // ----------------------------------------------------
 // [เพิ่มส่วนนี้] Logic สำหรับ Upload รูปภาพ
 // ----------------------------------------------------
@@ -26,6 +38,7 @@ const handleFileUpload = async (event: Event) => {
   if (target.files && target.files[0]) {
     const file = target.files[0]
     isUploading.value = true
+    alertState.value.visible = false // Hide previous alerts
     
     try {
       const token = await getToken.value()
@@ -39,7 +52,7 @@ const handleFileUpload = async (event: Event) => {
       }
     } catch (err) {
       console.error('Upload failed:', err)
-      alert('Failed to upload image')
+      showAlert('destructive', 'Failed to upload image. Please try again.')
     } finally {
       isUploading.value = false
       target.value = '' // Reset input file ให้เลือกไฟล์เดิมซ้ำได้ถ้าต้องการ
@@ -77,6 +90,7 @@ const resetForm = () => {
     tempTag: '',
     coordinateInput: ''
   }
+  alertState.value.visible = false
 }
 
 // Watch เมื่อเปิด Modal หรือเปลี่ยน editId
@@ -94,6 +108,7 @@ watch(() => props.isOpen, async (newVal) => {
 
 const fetchTripDetails = async (id: number) => {
   isLoading.value = true
+  alertState.value.visible = false
   try {
     const token = await getToken.value()
     if (!token) return
@@ -111,8 +126,8 @@ const fetchTripDetails = async (id: number) => {
       coordinateInput: `${trip.latitude}, ${trip.longitude}` // Set input string
     }
   } catch (err) {
-    alert('Failed to fetch trip details')
-    emit('close')
+    showAlert('destructive', 'Failed to fetch trip details.')
+    // emit('close') // Maybe don't close immediately so user sees the error?
   } finally {
     isLoading.value = false
   }
@@ -143,6 +158,14 @@ const openGoogleMapsFinder = () => {
 
 const handleSubmit = async () => {
   isSubmitting.value = true
+  alertState.value.visible = false
+  
+  if (!formData.value.title || !formData.value.description) {
+    showAlert('warning', 'Please fill in all required fields (Title, Description).')
+    isSubmitting.value = false
+    return
+  }
+
   try {
     const token = await getToken.value()
     if (!token) return
@@ -165,7 +188,7 @@ const handleSubmit = async () => {
     emit('success') // แจ้ง Parent ว่าทำรายการสำเร็จ
     emit('close')
   } catch (err) {
-    alert('Failed to save trip. Please check your inputs.')
+    showAlert('destructive', 'Failed to save trip. Please check your inputs.')
     console.error(err)
   } finally {
     isSubmitting.value = false
@@ -209,15 +232,26 @@ const removeTag = (idx: number) => formData.value.tags.splice(idx, 1)
 
       <!-- Form Content -->
       <div v-else class="p-6 space-y-4">
+        
+        <!-- Alert Area -->
+        <Alert 
+          v-if="alertState.visible" 
+          :variant="alertState.variant" 
+          :message="alertState.message" 
+          class="mb-4"
+          dismissible
+          @dismiss="alertState.visible = false"
+        />
+
         <!-- Title -->
         <div>
-          <label class="block text-sm font-medium mb-1">Title</label>
+          <label class="block text-sm font-medium mb-1">Title <span class="text-red-500">*</span></label>
           <input v-model="formData.title" type="text" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Trip name..." />
         </div>
 
         <!-- Description -->
         <div>
-          <label class="block text-sm font-medium mb-1">Description</label>
+          <label class="block text-sm font-medium mb-1">Description <span class="text-red-500">*</span></label>
           <textarea v-model="formData.description" rows="4" class="w-full px-4 py-2 rounded-xl bg-muted/50 border border-border focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Tell us about this place..."></textarea>
         </div>
 

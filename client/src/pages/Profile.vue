@@ -2,6 +2,8 @@
 import { useUser } from '@clerk/vue'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Loader2, Upload, Save } from 'lucide-vue-next'
+import Alert from '../components/Alert.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 
 const { user } = useUser()
 
@@ -23,6 +25,29 @@ const isEditing = ref(false)
 const isUpdating = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 
+// Alert State
+const alertState = ref({
+    visible: false,
+    variant: 'default' as 'default' | 'destructive' | 'success' | 'warning' | 'info',
+    message: ''
+})
+
+const showAlert = (variant: 'success' | 'destructive' | 'warning', message: string) => {
+    alertState.value = { visible: true, variant, message }
+    if (variant === 'success') {
+        setTimeout(() => alertState.value.visible = false, 5000)
+    }
+}
+
+// Confirm Dialog State
+const confirmDialog = ref({
+  isOpen: false,
+  title: '',
+  description: '',
+  isLoading: false,
+  onConfirm: () => {}
+})
+
 // Form Data
 const editForm = ref({
     firstName: '',
@@ -38,12 +63,14 @@ watch(isEditing, (newVal) => {
             lastName: user.value.lastName || '',
             username: user.value.username || ''
         }
+        alertState.value.visible = false
     }
 })
 
 const updateProfile = async () => {
     if (!user.value) return
     isUpdating.value = true
+    alertState.value.visible = false
 
     try {
         await user.value.update({
@@ -52,38 +79,48 @@ const updateProfile = async () => {
             // username: editForm.value.username // ปิดไว้ก่อนถ้า Clerk ยังไม่ได้เปิดให้แก้
         })
 
-        alert('Profile updated successfully!')
+        showAlert('success', 'Profile updated successfully!')
         isEditing.value = false
     } catch (err) {
         console.error('Update failed:', err)
-        alert('Failed to update profile. Please try again.')
+        showAlert('destructive', 'Failed to update profile. Please try again.')
     } finally {
         isUpdating.value = false
     }
 }
 
-const isDeleting = ref(false)
+const openDeleteConfirm = () => {
+    confirmDialog.value = {
+        isOpen: true,
+        title: 'Delete Account',
+        description: 'Are you sure you want to delete your account? All your trips will be permanently deleted. This action cannot be undone.',
+        isLoading: false,
+        onConfirm: () => deleteAccount()
+    }
+}
 
 const deleteAccount = async () => {
     if (!user.value) return
 
-    const confirmed = window.confirm(
-        'Are you sure you want to delete your account? All your trips will be permanently deleted.'
-    )
-    if (!confirmed) return
-
     try {
-        isDeleting.value = true
+        confirmDialog.value.isLoading = true
         // ลบ User ที่ Clerk (จะไปกระตุ้น webhook ลบ Trips + User ใน DB)
         await user.value.delete()
+        
+        // Close dialog
+        confirmDialog.value.isOpen = false
 
         // ลบเสร็จแล้ว ออกจากระบบ / กลับหน้าแรก
         window.location.href = '/'
     } catch (err) {
+        confirmDialog.value.isOpen = false
         console.error('Delete account failed:', err)
-        alert('Failed to delete account. Please try again.')
+        showAlert('destructive', 'Failed to delete account. Please try again.')
     } finally {
-        isDeleting.value = false
+        // Reset loading state if error
+        if (confirmDialog.value.isOpen) {
+             confirmDialog.value.isLoading = false
+        }
     }
 }
 
@@ -91,14 +128,15 @@ const handleImageUpdate = async (event: Event) => {
     const target = event.target as HTMLInputElement
     if (target.files && target.files[0] && user.value) {
         isUpdating.value = true
+        alertState.value.visible = false
         try {
             await user.value.setProfileImage({
                 file: target.files[0]
             })
-            alert('Profile image updated!')
+            showAlert('success', 'Profile image updated!')
         } catch (err) {
             console.error('Image update failed:', err)
-            alert('Failed to update image.')
+            showAlert('destructive', 'Failed to update image.')
         } finally {
             isUpdating.value = false
             target.value = '' // Reset input
@@ -135,6 +173,28 @@ onUnmounted(() => {
                 <span class="text-base">Back</span>
             </button>
         </div>
+
+        <!-- Alert Area -->
+        <Alert 
+            v-if="alertState.visible" 
+            :variant="alertState.variant" 
+            :message="alertState.message" 
+            dismissible 
+            overlay
+            @dismiss="alertState.visible = false" 
+        />
+        
+        <!-- Confirm Dialog -->
+        <ConfirmDialog 
+            :is-open="confirmDialog.isOpen"
+            :title="confirmDialog.title"
+            :description="confirmDialog.description"
+            :is-loading="confirmDialog.isLoading"
+            confirm-text="Delete Account"
+            variant="destructive"
+            @confirm="confirmDialog.onConfirm"
+            @cancel="confirmDialog.isOpen = false"
+        />
 
         <div v-if="profile" class="bg-card rounded-3xl shadow-sm border border-border overflow-hidden">
 
@@ -230,13 +290,13 @@ onUnmounted(() => {
 
                         <div class="flex justify-between items-center pt-4 border-t border-border">
                             <!-- ปุ่ม Delete -->
-                            <button @click="deleteAccount" :disabled="isDeleting || isUpdating"
+                            <button @click="openDeleteConfirm" :disabled="confirmDialog.isLoading || isUpdating"
                                 class="px-4 py-2 rounded-xl font-medium border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors">
-                                {{ isDeleting ? 'Deleting...' : 'Delete Account' }}
+                                {{ confirmDialog.isLoading ? 'Deleting...' : 'Delete Account' }}
                             </button>
 
                             <!-- ปุ่ม Save -->
-                            <button @click="updateProfile" :disabled="isUpdating || isDeleting"
+                            <button @click="updateProfile" :disabled="isUpdating || confirmDialog.isLoading"
                                 class="px-6 py-2 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-all flex items-center gap-2 shadow-sm">
                                 <Loader2 v-if="isUpdating" class="w-4 h-4 animate-spin" />
                                 <Save v-else class="w-4 h-4" />
@@ -255,4 +315,3 @@ onUnmounted(() => {
         </div>
     </div>
 </template>
-

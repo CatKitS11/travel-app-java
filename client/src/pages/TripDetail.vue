@@ -7,6 +7,7 @@ import { useAuth } from '@clerk/vue'
 import { MapPin, ExternalLink, MapPinOff } from 'lucide-vue-next'
 // 1. เพิ่ม Import Component ใหม่
 import ImageLightbox from '../components/ImageLightbox.vue'
+import Alert from '../components/Alert.vue'
 
 const route = useRoute()
 const { getToken } = useAuth()
@@ -65,7 +66,7 @@ const fetchTripDetail = async () => {
         trip.value = response
     } catch (err) {
         console.error('Error fetching trip:', err)
-        error.value = 'Failed to load trip details.'
+        error.value = 'Failed to load trip details. It might have been deleted or you do not have permission to view it.'
     } finally {
         loading.value = false
     }
@@ -104,10 +105,15 @@ onUnmounted(() => {
         </div>
 
         <!-- Error State -->
-        <div v-else-if="error" class="text-center py-20 text-destructive">
-            <p class="text-xl font-bold mb-2">Something went wrong</p>
-            <p>{{ error }}</p>
-            <button @click="fetchTripDetail" class="mt-4 text-primary hover:underline">Try Again</button>
+        <div v-else-if="error" class="py-20 max-w-lg mx-auto">
+            <Alert 
+                variant="destructive" 
+                title="Something went wrong" 
+                :message="error" 
+            />
+            <div class="text-center mt-4">
+                <button @click="fetchTripDetail" class="text-primary hover:underline">Try Again</button>
+            </div>
         </div>
 
         <!-- Content State -->
@@ -261,4 +267,3 @@ onUnmounted(() => {
             @close="lightboxOpen = false" />
     </div> <!-- ปิด div หลัก -->
 </template>
-

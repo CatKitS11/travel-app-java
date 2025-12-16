@@ -6,6 +6,8 @@ import { useAuth, useUser } from '@clerk/vue'
 import { Plus, Edit, Trash2, MapPin, LayoutDashboard } from 'lucide-vue-next'
 import TripFormModal from '../components/TripFormModal.vue'
 import TripSkeleton from '../components/TripSkeleton.vue'
+import Alert from '../components/Alert.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 
 const router = useRouter()
 const { isSignedIn, isLoaded } = useUser() // ดึงสถานะ user
@@ -31,6 +33,48 @@ const loading = ref(true)
 const isModalOpen = ref(false)
 const editTripId = ref<number | null>(null) // เก็บ ID ที่จะ Edit
 
+// Alert State
+const alertState = ref({
+  visible: false,
+  variant: 'default' as 'default' | 'destructive' | 'success' | 'warning' | 'info',
+  title: '',
+  message: ''
+})
+
+const showAlert = (variant: 'success' | 'destructive' | 'warning', title: string, message: string) => {
+  alertState.value = {
+    visible: true,
+    variant,
+    title,
+    message
+  }
+  // Auto dismiss for success alerts
+  if (variant === 'success') {
+    setTimeout(() => {
+      alertState.value.visible = false
+    }, 5000)
+  }
+}
+
+// Confirm Dialog State
+const confirmDialog = ref({
+  isOpen: false,
+  title: '',
+  description: '',
+  isLoading: false,
+  onConfirm: () => {}
+})
+
+const openConfirmDelete = (id: number) => {
+  confirmDialog.value = {
+    isOpen: true,
+    title: 'Delete Trip',
+    description: 'Are you sure you want to delete this trip? This action cannot be undone.',
+    isLoading: false,
+    onConfirm: () => handleDelete(id)
+  }
+}
+
 const fetchMyTrips = async () => {
   loading.value = true
   try {
@@ -40,6 +84,7 @@ const fetchMyTrips = async () => {
     trips.value = response
   } catch (err) {
     console.error(err)
+    showAlert('destructive', 'Error', 'Failed to fetch your trips.')
   } finally {
     loading.value = false
   }
@@ -59,17 +104,28 @@ const openEditModal = (id: number) => {
 
 const handleModalSuccess = () => {
   fetchMyTrips() // Refresh list when success
+  showAlert('success', 'Success', editTripId.value ? 'Trip updated successfully.' : 'Trip created successfully.')
 }
 
 const handleDelete = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this trip?')) return
+  confirmDialog.value.isLoading = true
   try {
     const token = await getToken.value()
     if (!token) return
     await tripsApi.delete(id, token)
+    
+    // Close dialog first
+    confirmDialog.value.isOpen = false
+    
+    showAlert('success', 'Deleted', 'Trip deleted successfully.')
     fetchMyTrips()
   } catch (err) {
-    alert('Failed to delete trip')
+    // Close dialog even on error, or keep it open? Usually close it or show error in dialog.
+    // For simplicity, let's close and show global alert
+    confirmDialog.value.isOpen = false
+    showAlert('destructive', 'Delete Failed', 'Failed to delete trip. Please try again.')
+  } finally {
+    confirmDialog.value.isLoading = false
   }
 }
 
@@ -109,6 +165,29 @@ onUnmounted(() => {
       </button>
     </div>
 
+    <!-- Alert -->
+    <Alert 
+      v-if="alertState.visible" 
+      :variant="alertState.variant" 
+      :title="alertState.title" 
+      :message="alertState.message" 
+      dismissible 
+      overlay
+      @dismiss="alertState.visible = false" 
+    />
+
+    <!-- Confirm Dialog -->
+    <ConfirmDialog 
+      :is-open="confirmDialog.isOpen"
+      :title="confirmDialog.title"
+      :description="confirmDialog.description"
+      :is-loading="confirmDialog.isLoading"
+      confirm-text="Delete Trip"
+      variant="destructive"
+      @confirm="confirmDialog.onConfirm"
+      @cancel="confirmDialog.isOpen = false"
+    />
+
     <!-- Loading -->
     <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <TripSkeleton v-for="i in 6" :key="i" />
@@ -142,7 +221,7 @@ onUnmounted(() => {
               class="p-2 bg-white rounded-full text-black hover:bg-gray-100 transition-colors mt-2 xl:mt-0" title="Edit">
               <Edit class="w-5 h-5" />
             </button>
-            <button @click="handleDelete(trip.id)"
+            <button @click="openConfirmDelete(trip.id)"
               class="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors mt-2 mr-2 xl:mr-0 xl:mt-0" title="Delete">
               <Trash2 class="w-5 h-5" />
             </button>
