@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plane, User, Menu, UserPlus } from 'lucide-vue-next';
+import { Plane, User, UserPlus } from 'lucide-vue-next';
 import { useClerk, useUser } from '@clerk/vue';
 import UserDropdown from './UserDropdown.vue';
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Loader2, AlertTriangle, Info } from 'lucide-vue-next'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   isOpen: boolean
   title?: string
   description?: string
