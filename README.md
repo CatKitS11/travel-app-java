@@ -3,7 +3,7 @@
 A modern, full-featured travel social application built with Vue.js and Spring Boot, designed to help travelers share their adventures and discover new destinations through meaningful connections.
 
 ## Deployed Website
-You can check the project at : [Link to your deployed website]
+- **Frontend** : https://travel-app-java.vercel.app
 
 ### Landing Page
 ![landing](https://vgsdcnyakswlnfnfcotx.supabase.co/storage/v1/object/public/photo-github/catkits/travel-app/jpg_web_travel_1.jpg)
